@@ -62,6 +62,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third-party apps
+    "rest_framework",
+    "corsheaders",
     # CareSphere apps
     "apps.users",
     "apps.service_users",
@@ -81,6 +84,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # CORS must be before CommonMiddleware
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -132,7 +137,6 @@ WSGI_APPLICATION = "caresphere_backend.wsgi.application"
 
 DATABASES = {"default": env.db("DATABASE_URL")}
 
-# Supabase requires SSL connections
 DATABASES["default"]["OPTIONS"] = {
     "sslmode": "require",
 }
@@ -202,3 +206,25 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ======================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# ======================================================
+# CORS
+# ======================================================
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+
+# ======================================================
+# DJANGO REST FRAMEWORK
+# ======================================================
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+}
