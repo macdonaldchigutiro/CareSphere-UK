@@ -1,11 +1,59 @@
-import os
 from pathlib import Path
+import environ
+
+# ======================================================
+# BASE DIRECTORY
+# ======================================================
+
+# This settings.py is inside:
+# caresphere_backend/caresphere_backend/settings.py
+#
+# Therefore parent.parent points to:
+# caresphere_backend/
+# where your .env and manage.py are located.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-your-secret-key-here"
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+# ======================================================
+# ENVIRONMENT VARIABLES
+# ======================================================
+
+env = environ.Env(
+    DEBUG=(bool, True),
+)
+
+# Load:
+# CareSphere-UK/caresphere_backend/.env
+environ.Env.read_env(BASE_DIR / ".env")
+
+
+# ======================================================
+# CORE SETTINGS
+# ======================================================
+
+SECRET_KEY = env(
+    "SECRET_KEY",
+    default="django-insecure-development-key",
+)
+
+DEBUG = env.bool(
+    "DEBUG",
+    default=True,
+)
+
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+    ],
+)
+
+
+# ======================================================
+# INSTALLED APPS
+# ======================================================
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -14,6 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # CareSphere apps
     "apps.users",
     "apps.service_users",
     "apps.care_providers",
@@ -25,6 +74,11 @@ INSTALLED_APPS = [
     "apps.pricing",
 ]
 
+
+# ======================================================
+# MIDDLEWARE
+# ======================================================
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -35,13 +89,23 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
+# ======================================================
+# URL CONFIGURATION
+# ======================================================
+
 ROOT_URLCONF = "caresphere_backend.urls"
+
+
+# ======================================================
+# TEMPLATES
+# ======================================================
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
-        "APP_DIRS": True,  # ← THIS MUST BE TRUE
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -53,34 +117,88 @@ TEMPLATES = [
     },
 ]
 
+
+# ======================================================
+# WSGI
+# ======================================================
+
 WSGI_APPLICATION = "caresphere_backend.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+
+# ======================================================
+# DATABASE
+# Supabase PostgreSQL
+# ======================================================
+
+DATABASES = {"default": env.db("DATABASE_URL")}
+
+# Supabase requires SSL connections
+DATABASES["default"]["OPTIONS"] = {
+    "sslmode": "require",
 }
+
+
+# ======================================================
+# CUSTOM USER MODEL
+# ======================================================
+
+AUTH_USER_MODEL = "users.User"
+
+
+# ======================================================
+# PASSWORD VALIDATION
+# ======================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": ("django.contrib.auth.password_validation." "MinimumLengthValidator"),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": ("django.contrib.auth.password_validation." "CommonPasswordValidator"),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": ("django.contrib.auth.password_validation." "NumericPasswordValidator"),
     },
 ]
 
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+
+# ======================================================
+# INTERNATIONALISATION
+# ======================================================
+
+LANGUAGE_CODE = "en-gb"
+
+TIME_ZONE = "Europe/London"
+
 USE_I18N = True
+
 USE_TZ = True
+
+
+# ======================================================
+# STATIC FILES
+# ======================================================
+
 STATIC_URL = "static/"
+
+
+# ======================================================
+# MEDIA FILES
+# ======================================================
+
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = BASE_DIR / "media"
+
+
+# ======================================================
+# DEFAULT PRIMARY KEY
+# ======================================================
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = "users.User"
