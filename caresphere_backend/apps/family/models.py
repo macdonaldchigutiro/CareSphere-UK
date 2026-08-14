@@ -468,3 +468,70 @@ class ThreadParticipation(models.Model):
 
     def __str__(self):
         return f"{self.participant.user.get_full_name()} in {self.thread.subject}"
+
+
+class SavedProvider(models.Model):
+    """
+    A care provider saved or shortlisted by a CareSphere user.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="saved_providers",
+    )
+
+    provider = models.ForeignKey(
+        "care_providers.CareProvider",
+        on_delete=models.CASCADE,
+        related_name="saved_by_users",
+    )
+
+    notes = models.TextField(
+        blank=True,
+    )
+
+    saved_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        verbose_name = "Saved Provider"
+        verbose_name_plural = "Saved Providers"
+
+        ordering = [
+            "-saved_at",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "user",
+                    "provider",
+                ],
+                name="unique_saved_provider_per_user",
+            )
+        ]
+
+        indexes = [
+            models.Index(
+                fields=[
+                    "user",
+                    "saved_at",
+                ]
+            ),
+            models.Index(
+                fields=[
+                    "provider",
+                ]
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} saved " f"{self.provider.company_name}"

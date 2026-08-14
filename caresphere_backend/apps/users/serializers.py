@@ -64,8 +64,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             username=email,
             email=email,
-            first_name=validated_data["first_name"],
-            last_name=validated_data["last_name"],
+            first_name=validated_data["first_name"].strip(),
+            last_name=validated_data["last_name"].strip(),
             password=validated_data["password"],
             user_type=validated_data.get("user_type", "family"),
         )
@@ -75,10 +75,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-
-    password = serializers.CharField(
-        write_only=True,
-    )
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         email = data["email"].lower().strip()
