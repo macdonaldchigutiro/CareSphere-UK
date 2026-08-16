@@ -1,16 +1,10 @@
 from pathlib import Path
+from datetime import timedelta
 import environ
 
 # ======================================================
 # BASE DIRECTORY
 # ======================================================
-
-# This settings.py is inside:
-# caresphere_backend/caresphere_backend/settings.py
-#
-# Therefore parent.parent points to:
-# caresphere_backend/
-# where your .env and manage.py are located.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -56,14 +50,16 @@ ALLOWED_HOSTS = env.list(
 # ======================================================
 
 INSTALLED_APPS = [
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third-party apps
+    # Third-party
     "rest_framework",
+    "django_filters",
     "corsheaders",
     # CareSphere apps
     "apps.users",
@@ -84,7 +80,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # CORS must be before CommonMiddleware
+    # CORS should be before CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -217,6 +213,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = False
+
 
 # ======================================================
 # DJANGO REST FRAMEWORK
@@ -227,4 +225,19 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    "DEFAULT_PAGINATION_CLASS": ("rest_framework.pagination.PageNumberPagination"),
+    "PAGE_SIZE": 20,
+}
+
+
+# ======================================================
+# SIMPLE JWT
+# ======================================================
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": False,
 }

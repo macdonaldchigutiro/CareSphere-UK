@@ -37,6 +37,12 @@ export default function DashboardPage() {
   const [authReady, setAuthReady] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
+  const [savedProvidersCount, setSavedProvidersCount] =
+    useState(0);
+
+  const [bookingsCount, setBookingsCount] =
+    useState(0);
+
   // ======================================================
   // LOGIN REDIRECT
   // ======================================================
@@ -48,70 +54,162 @@ export default function DashboardPage() {
   };
 
   // ======================================================
-  // LOAD AUTHENTICATED USER + LATEST PROFILE
+  // LOAD DASHBOARD DATA
   // ======================================================
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        // We need at least a refresh token/session.
         if (!getAuthStorage()) {
           goToLogin();
           return;
         }
 
-        // Show stored user immediately while Django
-        // checks for the latest profile information.
-        const storedUser = getStoredUser();
+        const storedUser =
+          getStoredUser();
 
         if (storedUser) {
           setUser(storedUser);
         }
 
-        const response = await authFetch(
-          `${API_URL}/api/users/profile/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        // ==================================================
+        // PROFILE
+        // ==================================================
 
-        if (!response) {
+        const profileResponse =
+          await authFetch(
+            `${API_URL}/api/users/profile/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (!profileResponse) {
           goToLogin();
           return;
         }
 
-        // authFetch has already tried refreshing the
-        // access token. A remaining 401 means login
-        // is genuinely required.
-        if (response.status === 401) {
+        if (
+          profileResponse.status === 401
+        ) {
           goToLogin();
           return;
         }
 
-        if (!response.ok) {
+        if (!profileResponse.ok) {
           throw new Error(
             "Unable to load your latest CareSphere profile."
           );
         }
 
         const profileData =
-          await response.json();
+          await profileResponse.json();
 
         setUser(profileData);
 
-        updateStoredUser(profileData);
+        updateStoredUser(
+          profileData
+        );
+
+        // ==================================================
+        // SAVED PROVIDERS
+        // ==================================================
+
+        const savedProvidersResponse =
+          await authFetch(
+            `${API_URL}/api/family/saved-providers/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (
+          savedProvidersResponse &&
+          savedProvidersResponse.ok
+        ) {
+          const savedProvidersData =
+            await savedProvidersResponse.json();
+
+          const savedItems =
+            Array.isArray(
+              savedProvidersData
+            )
+              ? savedProvidersData
+              : Array.isArray(
+                  savedProvidersData.results
+                )
+              ? savedProvidersData.results
+              : [];
+
+          setSavedProvidersCount(
+            savedItems.length
+          );
+        }
+
+        // ==================================================
+        // BOOKINGS / CARE REQUESTS
+        // ==================================================
+
+        const bookingsResponse =
+          await authFetch(
+            `${API_URL}/api/bookings/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (
+          bookingsResponse &&
+          bookingsResponse.ok
+        ) {
+          const bookingsData =
+            await bookingsResponse.json();
+
+          const bookingItems =
+            Array.isArray(
+              bookingsData
+            )
+              ? bookingsData
+              : Array.isArray(
+                  bookingsData.results
+                )
+              ? bookingsData.results
+              : [];
+
+          const activeBookings =
+            bookingItems.filter(
+              (booking) =>
+                ![
+                  "completed",
+                  "cancelled",
+                  "declined",
+                ].includes(
+                  booking.status
+                )
+            );
+
+          setBookingsCount(
+            activeBookings.length
+          );
+        }
       } catch (error) {
         console.error(
           "Dashboard loading error:",
           error
         );
 
-        // If we already have stored user information,
-        // keep the dashboard usable during a temporary
-        // backend/network problem.
         const storedUser =
           getStoredUser();
 
@@ -145,11 +243,13 @@ export default function DashboardPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#F7FAFC]">
         <div className="text-center">
+
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0F766E]" />
 
           <p className="mt-4 text-sm font-medium text-slate-500">
             Loading your CareSphere dashboard...
           </p>
+
         </div>
       </main>
     );
@@ -192,34 +292,46 @@ export default function DashboardPage() {
         String(field).trim() !== ""
     ).length;
 
-  const profileCompletion = Math.round(
-    (completedFields /
-      profileFields.length) *
-      100
-  );
+  const profileCompletion =
+    Math.round(
+      (completedFields /
+        profileFields.length) *
+        100
+    );
 
   const profileComplete =
     profileCompletion === 100;
 
   // ======================================================
-  // DASHBOARD STATS
+  // PROVIDER STATS
   // ======================================================
 
   const providerStats = [
     {
       label: "New enquiries",
-      value: "0",
+      value: String(
+        bookingsCount
+      ),
       icon: Bell,
-      note: "No new enquiries yet",
+      note:
+        bookingsCount > 0
+          ? "Care requests are waiting for review"
+          : "No new enquiries yet",
     },
     {
       label: "Upcoming bookings",
-      value: "0",
+      value: String(
+        bookingsCount
+      ),
       icon: CalendarDays,
-      note: "No upcoming bookings",
+      note:
+        bookingsCount > 0
+          ? "Active care requests and bookings"
+          : "No upcoming bookings",
     },
     {
-      label: "Profile completion",
+      label:
+        "Profile completion",
       value: `${profileCompletion}%`,
       icon: User,
       note: profileComplete
@@ -238,27 +350,44 @@ export default function DashboardPage() {
     },
   ];
 
+  // ======================================================
+  // FAMILY STATS
+  // ======================================================
+
   const familyStats = [
     {
       label: "Saved providers",
-      value: "0",
+      value: String(
+        savedProvidersCount
+      ),
       icon: Star,
-      note: "Build and manage your shortlist",
+      note:
+        savedProvidersCount > 0
+          ? "View and compare your shortlist"
+          : "Build and manage your shortlist",
     },
     {
-      label: "Upcoming bookings",
-      value: "0",
+      label:
+        "Upcoming bookings",
+      value: String(
+        bookingsCount
+      ),
       icon: CalendarDays,
-      note: "No upcoming bookings",
+      note:
+        bookingsCount > 0
+          ? "Active care requests and bookings"
+          : "No upcoming bookings",
     },
     {
       label: "Family circle",
       value: "0",
       icon: Users,
-      note: "Invite relatives to collaborate",
+      note:
+        "Invite relatives to collaborate",
     },
     {
-      label: "Profile completion",
+      label:
+        "Profile completion",
       value: `${profileCompletion}%`,
       icon: User,
       note: profileComplete
@@ -273,26 +402,34 @@ export default function DashboardPage() {
 
   const providerActions = [
     {
-      title: "Complete provider profile",
-      text: "Add and manage your personal CareSphere details.",
+      title:
+        "Complete provider profile",
+      text:
+        "Add and manage your personal CareSphere details.",
       icon: User,
       href: "/profile",
     },
     {
-      title: "Manage availability",
-      text: "Update when your care team is available.",
+      title:
+        "Manage availability",
+      text:
+        "Update when your care team is available.",
       icon: CalendarDays,
       href: null,
     },
     {
-      title: "Review enquiries",
-      text: "Respond to families interested in your services.",
+      title:
+        "Review enquiries",
+      text:
+        "Respond to families interested in your services.",
       icon: Bell,
-      href: null,
+      href: "/bookings",
     },
     {
-      title: "Verification centre",
-      text: "Manage your verification information and documents.",
+      title:
+        "Verification centre",
+      text:
+        "Manage your verification information and documents.",
       icon: ShieldCheck,
       href: null,
     },
@@ -301,33 +438,40 @@ export default function DashboardPage() {
   const familyActions = [
     {
       title: "Find care",
-      text: "Search and compare providers based on your needs.",
+      text:
+        "Search and compare providers based on your needs.",
       icon: Search,
       href: "/find-care",
     },
     {
-      title: "Saved providers",
-      text: "Review care providers you have shortlisted.",
+      title:
+        "Saved providers",
+      text:
+        "Review care providers you have shortlisted.",
       icon: Star,
       href: "/saved-providers",
     },
     {
-      title: "Family circle",
-      text: "Invite relatives to help compare care options.",
+      title:
+        "Family circle",
+      text:
+        "Invite relatives to help compare care options.",
       icon: Users,
       href: null,
     },
     {
       title: "My bookings",
-      text: "Review upcoming and previous care bookings.",
+      text:
+        "Review your care requests and bookings.",
       icon: CalendarDays,
-      href: null,
+      href: "/bookings",
     },
   ];
 
-  const quickActions = isProvider
-    ? providerActions
-    : familyActions;
+  const quickActions =
+    isProvider
+      ? providerActions
+      : familyActions;
 
   return (
     <main className="min-h-screen bg-[#F7FAFC] text-slate-950">
@@ -335,29 +479,33 @@ export default function DashboardPage() {
       {/* HEADER */}
 
       <header className="border-b border-slate-200 bg-white">
+
         <div className="mx-auto flex max-w-[1500px] items-center justify-between px-5 py-4 lg:px-8">
 
           <Link
             href="/"
             className="flex items-center gap-3"
           >
+
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F766E] text-white">
               <HeartHandshake className="h-6 w-6" />
             </div>
 
             <div>
+
               <div className="text-xl font-extrabold tracking-tight">
                 CareSphere
                 <span className="text-[#0F766E]">
-                  {" "}
-                  UK
+                  {" "}UK
                 </span>
               </div>
 
               <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Care with confidence
               </div>
+
             </div>
+
           </Link>
 
           <div className="flex items-center gap-3">
@@ -386,7 +534,9 @@ export default function DashboardPage() {
 
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={
+                handleSignOut
+              }
               className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
             >
               <LogOut className="h-4 w-4" />
@@ -399,13 +549,14 @@ export default function DashboardPage() {
           </div>
 
         </div>
+
       </header>
 
       {/* PAGE */}
 
       <div className="mx-auto max-w-[1500px] px-5 py-10 lg:px-8">
 
-        {/* WELCOME */}
+        {/* HERO */}
 
         <section className="overflow-hidden rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12">
 
@@ -418,13 +569,16 @@ export default function DashboardPage() {
               </p>
 
               <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
-                Welcome back, {displayName}.
+                Welcome back,{" "}
+                {displayName}.
               </h1>
 
               <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+
                 {isProvider
                   ? "Manage your care profile, enquiries, bookings and availability from one place."
                   : "Manage your care journey, saved providers, bookings and family decisions from one place."}
+
               </p>
 
             </div>
@@ -452,7 +606,8 @@ export default function DashboardPage() {
             ? providerStats
             : familyStats
           ).map((item) => {
-            const Icon = item.icon;
+            const Icon =
+              item.icon;
 
             return (
               <div
@@ -537,7 +692,9 @@ export default function DashboardPage() {
                     const Icon =
                       action.icon;
 
-                    if (action.href) {
+                    if (
+                      action.href
+                    ) {
                       return (
                         <Link
                           key={
@@ -560,11 +717,15 @@ export default function DashboardPage() {
                           </div>
 
                           <h3 className="text-lg font-extrabold text-slate-950">
-                            {action.title}
+                            {
+                              action.title
+                            }
                           </h3>
 
                           <p className="mt-2 text-sm leading-6 text-slate-500">
-                            {action.text}
+                            {
+                              action.text
+                            }
                           </p>
 
                         </Link>
@@ -573,7 +734,9 @@ export default function DashboardPage() {
 
                     return (
                       <button
-                        key={action.title}
+                        key={
+                          action.title
+                        }
                         type="button"
                         className="group rounded-2xl border border-slate-200 p-5 text-left transition hover:border-[#0F766E]/40 hover:bg-teal-50/40"
                       >
@@ -589,11 +752,15 @@ export default function DashboardPage() {
                         </div>
 
                         <h3 className="text-lg font-extrabold text-slate-950">
-                          {action.title}
+                          {
+                            action.title
+                          }
                         </h3>
 
                         <p className="mt-2 text-sm leading-6 text-slate-500">
-                          {action.text}
+                          {
+                            action.text
+                          }
                         </p>
 
                       </button>
@@ -623,19 +790,42 @@ export default function DashboardPage() {
 
               <div className="mt-7 rounded-2xl bg-slate-50 px-6 py-10 text-center">
 
-                <CheckCircle2 className="mx-auto h-8 w-8 text-slate-300" />
+                {bookingsCount > 0 ? (
+                  <>
+                    <CalendarDays className="mx-auto h-8 w-8 text-[#0F766E]" />
 
-                <h3 className="mt-4 font-bold text-slate-800">
-                  Nothing here yet
-                </h3>
+                    <h3 className="mt-4 font-bold text-slate-800">
+                      You have active care requests
+                    </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                  As you use CareSphere,
-                  your bookings, saved
-                  providers, enquiries and
-                  other activity will
-                  appear here.
-                </p>
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                      Track your pending and upcoming care
+                      arrangements from My Bookings.
+                    </p>
+
+                    <Link
+                      href="/bookings"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0F766E] px-5 py-3 text-sm font-bold text-white"
+                    >
+                      View bookings
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mx-auto h-8 w-8 text-slate-300" />
+
+                    <h3 className="mt-4 font-bold text-slate-800">
+                      Nothing here yet
+                    </h3>
+
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                      Your bookings, saved providers,
+                      enquiries and other activity will
+                      appear here.
+                    </p>
+                  </>
+                )}
 
               </div>
 
@@ -646,8 +836,6 @@ export default function DashboardPage() {
           {/* SIDE PANEL */}
 
           <aside className="space-y-6">
-
-            {/* USER CARD */}
 
             <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -685,8 +873,6 @@ export default function DashboardPage() {
 
               </div>
 
-              {/* PROFILE SUMMARY */}
-
               <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">
 
                 <div className="flex items-center justify-between text-sm">
@@ -696,7 +882,9 @@ export default function DashboardPage() {
                   </span>
 
                   <span className="font-bold text-slate-900">
-                    {profileCompletion}%
+                    {
+                      profileCompletion
+                    }%
                   </span>
 
                 </div>
@@ -714,7 +902,9 @@ export default function DashboardPage() {
 
                 {user?.phone_number && (
                   <p className="text-sm text-slate-500">
-                    {user.phone_number}
+                    {
+                      user.phone_number
+                    }
                   </p>
                 )}
 
@@ -729,8 +919,6 @@ export default function DashboardPage() {
               </Link>
 
             </div>
-
-            {/* SUPPORT */}
 
             <div className="rounded-[28px] bg-gradient-to-br from-[#0F766E] to-[#0A5B69] p-6 text-white shadow-xl">
 
@@ -760,8 +948,7 @@ export default function DashboardPage() {
 
         {profileLoading && (
           <p className="mt-6 text-center text-xs text-slate-400">
-            Updating your latest profile
-            information...
+            Updating your latest profile information...
           </p>
         )}
 
