@@ -11,24 +11,29 @@ from .views import (
 
 router = DefaultRouter()
 
+
 router.register(
     "circles",
     CareCircleViewSet,
+    basename="care-circle",
 )
 
 router.register(
     "members",
     CareCircleMemberViewSet,
+    basename="care-circle-member",
 )
 
 router.register(
     "decisions",
     FamilyDecisionViewSet,
+    basename="family-decision",
 )
 
 router.register(
     "notes",
     FamilyNoteViewSet,
+    basename="family-note",
 )
 
 router.register(
@@ -39,5 +44,8 @@ router.register(
 
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path(
+        "",
+        include(router.urls),
+    ),
 ]

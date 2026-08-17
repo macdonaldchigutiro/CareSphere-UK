@@ -1,10 +1,16 @@
-# apps/service_users/urls.py
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from .views import ServiceUserProfileViewSet
 
 router = DefaultRouter()
-router.register("profiles", ServiceUserProfileViewSet)
+
+router.register(
+    r"profiles",
+    ServiceUserProfileViewSet,
+    basename="service-user-profile",
+)
+
 
 urlpatterns = [
     path("", include(router.urls)),

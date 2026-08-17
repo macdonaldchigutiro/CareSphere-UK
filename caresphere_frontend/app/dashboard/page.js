@@ -43,6 +43,9 @@ export default function DashboardPage() {
   const [bookingsCount, setBookingsCount] =
     useState(0);
 
+  const [familyCircles, setFamilyCircles] =
+    useState([]);
+
   // ======================================================
   // LOGIN REDIRECT
   // ======================================================
@@ -204,6 +207,45 @@ export default function DashboardPage() {
             activeBookings.length
           );
         }
+
+        // ==================================================
+        // FAMILY CIRCLES
+        // ==================================================
+
+        const familyCirclesResponse =
+          await authFetch(
+            `${API_URL}/api/family/circles/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (
+          familyCirclesResponse &&
+          familyCirclesResponse.ok
+        ) {
+          const familyCirclesData =
+            await familyCirclesResponse.json();
+
+          const circleItems =
+            Array.isArray(
+              familyCirclesData
+            )
+              ? familyCirclesData
+              : Array.isArray(
+                  familyCirclesData.results
+                )
+              ? familyCirclesData.results
+              : [];
+
+          setFamilyCircles(
+            circleItems
+          );
+        }
       } catch (error) {
         console.error(
           "Dashboard loading error:",
@@ -303,6 +345,26 @@ export default function DashboardPage() {
     profileCompletion === 100;
 
   // ======================================================
+  // FAMILY CIRCLE INFORMATION
+  // ======================================================
+
+  const familyCircleCount =
+    familyCircles.length;
+
+  const singleFamilyCircle =
+    familyCircleCount === 1
+      ? familyCircles[0]
+      : null;
+
+  const singleFamilyCircleServiceUserId =
+    singleFamilyCircle?.service_user ?? null;
+
+  const familyCircleHref =
+    singleFamilyCircleServiceUserId
+      ? `/family-circle?service_user=${singleFamilyCircleServiceUserId}`
+      : null;
+
+  // ======================================================
   // PROVIDER STATS
   // ======================================================
 
@@ -380,10 +442,17 @@ export default function DashboardPage() {
     },
     {
       label: "Family circle",
-      value: "0",
+      value: String(
+        familyCircleCount
+      ),
       icon: Users,
+      href: familyCircleHref,
       note:
-        "Invite relatives to collaborate",
+        familyCircleCount === 0
+          ? "You are not currently in a Family Circle"
+          : familyCircleCount === 1
+          ? "Open your Family Circle and collaborate"
+          : `You belong to ${familyCircleCount} Family Circles`,
     },
     {
       label:
@@ -455,9 +524,13 @@ export default function DashboardPage() {
       title:
         "Family circle",
       text:
-        "Invite relatives to help compare care options.",
+        familyCircleCount === 0
+          ? "Join or create a Family Circle to coordinate care."
+          : familyCircleCount === 1
+          ? "Open your Family Circle and collaborate on care."
+          : `You belong to ${familyCircleCount} Family Circles.`,
       icon: Users,
-      href: null,
+      href: familyCircleHref,
     },
     {
       title: "My bookings",
@@ -609,12 +682,8 @@ export default function DashboardPage() {
             const Icon =
               item.icon;
 
-            return (
-              <div
-                key={item.label}
-                className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]"
-              >
-
+            const cardContent = (
+              <>
                 <div className="flex items-start justify-between gap-4">
 
                   <div>
@@ -656,7 +725,27 @@ export default function DashboardPage() {
 
                   </div>
                 )}
+              </>
+            );
 
+            if (item.href) {
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)] transition hover:border-[#0F766E]/40 hover:bg-teal-50/30"
+                >
+                  {cardContent}
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={item.label}
+                className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]"
+              >
+                {cardContent}
               </div>
             );
           })}
