@@ -1,5 +1,8 @@
 from django.db import models
+
 from apps.care_providers.models import CareProvider
+from apps.service_users.models import ServiceUserProfile
+
 import uuid
 
 
@@ -17,7 +20,10 @@ class Booking(models.Model):
         ONE_OFF = "one_off", "One-off care"
         DAILY = "daily", "Daily"
         WEEKLY = "weekly", "Weekly"
-        MULTIPLE_WEEKLY = "multiple_weekly", "Multiple times per week"
+        MULTIPLE_WEEKLY = (
+            "multiple_weekly",
+            "Multiple times per week",
+        )
         FORTNIGHTLY = "fortnightly", "Fortnightly"
         LIVE_IN = "live_in", "Live-in care"
         FLEXIBLE = "flexible", "Flexible / To be discussed"
@@ -40,13 +46,27 @@ class Booking(models.Model):
         related_name="bookings",
     )
 
-    # Person requiring care
+    # ======================================================
+    # CARE RECIPIENT
+    # ======================================================
+
+    service_user = models.ForeignKey(
+        ServiceUserProfile,
+        on_delete=models.SET_NULL,
+        related_name="bookings",
+        null=True,
+        blank=True,
+    )
+
     care_recipient_name = models.CharField(
         max_length=255,
         blank=True,
     )
 
-    # Requested type of care
+    # ======================================================
+    # CARE REQUEST
+    # ======================================================
+
     care_type = models.CharField(
         max_length=100,
         blank=True,
@@ -58,7 +78,10 @@ class Booking(models.Model):
         default=Frequency.FLEXIBLE,
     )
 
-    # Timing
+    # ======================================================
+    # TIMING
+    # ======================================================
+
     start_time = models.DateTimeField(
         null=True,
         blank=True,
@@ -69,7 +92,10 @@ class Booking(models.Model):
         blank=True,
     )
 
-    # Care request information
+    # ======================================================
+    # DETAILS
+    # ======================================================
+
     requirements = models.TextField(
         blank=True,
     )
@@ -92,14 +118,36 @@ class Booking(models.Model):
         auto_now=True,
     )
 
+    # ======================================================
+    # META
+    # ======================================================
+
     class Meta:
         ordering = ["-created_at"]
 
         indexes = [
             models.Index(fields=["user", "status"]),
             models.Index(fields=["provider", "status"]),
+            models.Index(fields=["service_user", "status"]),
             models.Index(fields=["created_at"]),
         ]
+
+    # ======================================================
+    # HELPERS
+    # ======================================================
+
+    def save(
+        self,
+        *args,
+        **kwargs,
+    ):
+        if self.service_user:
+            self.care_recipient_name = self.service_user.full_name
+
+        super().save(
+            *args,
+            **kwargs,
+        )
 
     def __str__(self):
         return (

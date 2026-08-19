@@ -204,7 +204,10 @@ class CareCircleMemberSerializer(serializers.ModelSerializer):
 
         return email
 
-    def validate(self, attrs):
+    def validate(
+        self,
+        attrs,
+    ):
         care_circle = attrs.get("care_circle")
 
         user = self.context.get("resolved_member_user")
@@ -262,6 +265,10 @@ class FamilyDecisionSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    has_voted = serializers.SerializerMethodField()
+
+    current_user_vote = serializers.SerializerMethodField()
+
     class Meta:
         model = FamilyDecision
 
@@ -284,6 +291,8 @@ class FamilyDecisionSerializer(serializers.ModelSerializer):
             "chosen_option",
             "approval_rate",
             "total_votes",
+            "has_voted",
+            "current_user_vote",
             "created_at",
             "voting_started_at",
             "voting_ended_at",
@@ -300,6 +309,8 @@ class FamilyDecisionSerializer(serializers.ModelSerializer):
             "chosen_option",
             "approval_rate",
             "total_votes",
+            "has_voted",
+            "current_user_vote",
             "created_at",
             "voting_started_at",
             "voting_ended_at",
@@ -316,6 +327,50 @@ class FamilyDecisionSerializer(serializers.ModelSerializer):
         name = obj.created_by.get_full_name().strip()
 
         return name or obj.created_by.email or obj.created_by.username
+
+    def get_current_user_vote_object(
+        self,
+        obj,
+    ):
+        request = self.context.get("request")
+
+        if not request or not request.user or not request.user.is_authenticated:
+            return None
+
+        return (
+            obj.votes.filter(
+                voter__user=request.user,
+                voter__is_active=True,
+            )
+            .select_related(
+                "voter",
+                "voter__user",
+            )
+            .first()
+        )
+
+    def get_has_voted(
+        self,
+        obj,
+    ):
+        return self.get_current_user_vote_object(obj) is not None
+
+    def get_current_user_vote(
+        self,
+        obj,
+    ):
+        vote = self.get_current_user_vote_object(obj)
+
+        if not vote:
+            return None
+
+        return {
+            "id": vote.id,
+            "chosen_option": vote.chosen_option,
+            "is_abstained": vote.is_abstained,
+            "comments": vote.comments,
+            "voted_at": vote.voted_at,
+        }
 
 
 # ======================================================
@@ -514,7 +569,10 @@ class SavedProviderSerializer(serializers.ModelSerializer):
             "saved_at",
         )
 
-    def validate(self, attrs):
+    def validate(
+        self,
+        attrs,
+    ):
         request = self.context.get("request")
 
         provider = attrs.get("provider")

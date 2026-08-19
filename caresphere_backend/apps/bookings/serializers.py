@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.family.models import CareCircleMember
+
 from .models import Booking
 
 
@@ -20,6 +22,11 @@ class BookingSerializer(serializers.ModelSerializer):
     )
 
     user_name = serializers.SerializerMethodField()
+
+    service_user_name = serializers.CharField(
+        source="service_user.full_name",
+        read_only=True,
+    )
 
     status_display = serializers.CharField(
         source="get_status_display",
@@ -42,6 +49,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "provider",
             "provider_name",
             "provider_city",
+            "service_user",
+            "service_user_name",
             "care_recipient_name",
             "care_type",
             "frequency",
@@ -59,17 +68,81 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "user",
+            "user_name",
+            "user_email",
+            "provider_name",
+            "provider_city",
+            "service_user_name",
+            "care_recipient_name",
             "status",
+            "status_display",
+            "frequency_display",
             "created_at",
             "updated_at",
         )
 
-    def get_user_name(self, obj):
-        full_name = obj.user.get_full_name()
+    def get_user_name(
+        self,
+        obj,
+    ):
+        full_name = obj.user.get_full_name().strip()
 
-        return full_name.strip() or obj.user.email
+        return full_name or obj.user.email
 
-    def validate(self, attrs):
+    def validate_service_user(
+        self,
+        service_user,
+    ):
+        request = self.context.get("request")
+
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError(
+                "You must be logged in to create a booking."
+            )
+
+        user = request.user
+
+        if user.is_staff or user.is_superuser:
+            return service_user
+
+        if not service_user.is_active:
+            raise serializers.ValidationError("This care recipient is not active.")
+
+        # Direct manager can create bookings.
+        if service_user.managed_by_id == user.id:
+            return service_user
+
+        # Active Family Circle members may create bookings
+        # when their role or explicit permission allows it.
+        membership = CareCircleMember.objects.filter(
+            care_circle__service_user=service_user,
+            user=user,
+            is_active=True,
+        ).first()
+
+        if not membership:
+            raise serializers.ValidationError(
+                "You do not have permission "
+                "to create a booking for this care recipient."
+            )
+
+        allowed_roles = {
+            CareCircleMember.MemberRole.PRIMARY,
+            CareCircleMember.MemberRole.ADMIN,
+        }
+
+        if membership.can_manage_bookings or membership.role in allowed_roles:
+            return service_user
+
+        raise serializers.ValidationError(
+            "Your Family Circle role does not allow "
+            "you to create bookings for this care recipient."
+        )
+
+    def validate(
+        self,
+        attrs,
+    ):
         start_time = attrs.get(
             "start_time",
             getattr(
