@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CareCircleViewSet,
     CareCircleMemberViewSet,
+    CommunicationThreadViewSet,
     FamilyDecisionViewSet,
     FamilyNoteViewSet,
     SavedProviderViewSet,
@@ -42,6 +43,11 @@ router.register(
     basename="saved-provider",
 )
 
+router.register(
+    "discussions",
+    CommunicationThreadViewSet,
+    basename="family-discussion",
+)
 
 urlpatterns = [
     path(
