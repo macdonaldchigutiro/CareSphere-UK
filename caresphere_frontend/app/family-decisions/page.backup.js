@@ -1802,25 +1802,15 @@ export default function FamilyDecisionsPage() {
                           </div>
 
 
-                          <div className="flex items-start gap-2 text-sm text-slate-500">
+                          <div className="inline-flex items-center gap-2 text-sm text-slate-500">
 
-  <CalendarDays className="mt-0.5 h-4 w-4 text-[#0F766E]" />
+                            <CalendarDays className="h-4 w-4 text-[#0F766E]" />
 
-  <div>
+                            {formatDate(
+                              decision.voting_deadline
+                            )}
 
-    <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-400">
-      Voting deadline
-    </p>
-
-    <p className="mt-0.5 font-semibold text-slate-600">
-      {formatDate(
-        decision.voting_deadline
-      )}
-    </p>
-
-  </div>
-
-</div>
+                          </div>
 
                         </div>
 

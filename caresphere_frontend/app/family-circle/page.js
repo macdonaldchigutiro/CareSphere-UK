@@ -1124,10 +1124,15 @@ export default function FamilyCirclePage() {
   <div className="mt-6 grid gap-4 md:grid-cols-2">
 
     <FeatureBlock
-      title="Shared notes"
-      text="Keep care updates visible to the right family members."
-      badge="Next"
-    />
+  title="Shared notes"
+  text="Keep care updates visible to the right family members."
+  href={
+    serviceUserId
+      ? `/family-notes?service_user=${serviceUserId}`
+      : "/family-notes"
+  }
+  badge="Open"
+/>
 
     <FeatureBlock
       title="Family decisions"
@@ -1148,10 +1153,15 @@ export default function FamilyCirclePage() {
     />
 
     <FeatureBlock
-      title="Family discussions"
-      text="Keep important conversations around care together."
-      badge="Planned"
-    />
+  title="Family discussions"
+  text="Keep important conversations around care together."
+  href={
+    serviceUserId
+      ? `/family-discussions?service_user=${serviceUserId}`
+      : "/family-discussions"
+  }
+  badge="Open"
+/>
 
   </div>
 

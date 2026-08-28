@@ -1,88 +1,92 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
-  ArrowLeft,
+  ArrowRight,
   Bell,
-  BellOff,
-  CheckCheck,
+  CalendarDays,
   CheckCircle2,
-  Circle,
-  Info,
-  Loader2,
-  AlertTriangle,
-  XCircle,
+  HeartHandshake,
+  LogOut,
+  Search,
+  Settings,
+  ShieldCheck,
+  Star,
+  User,
+  Users,
 } from "lucide-react";
 
 import {
   authFetch,
+  clearAuthSession,
   createLoginUrl,
   getAuthStorage,
+  getStoredUser,
+  updateStoredUser,
 } from "../../lib/auth";
 
+const API_URL = "http://127.0.0.1:8000";
 
-const API_URL =
-  "http://127.0.0.1:8000";
+export default function DashboardPage() {
+  const router = useRouter();
 
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-export default function NotificationsPage() {
-  const router =
-    useRouter();
+  const [savedProvidersCount, setSavedProvidersCount] =
+    useState(0);
 
-  const [
-    notifications,
-    setNotifications,
-  ] = useState([]);
+  const [bookingsCount, setBookingsCount] =
+    useState(0);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
-
-  const [
-    actionLoading,
-    setActionLoading,
-  ] = useState("");
+  const [familyCircles, setFamilyCircles] =
+    useState([]);
 
   const [
-    error,
-    setError,
-  ] = useState("");
+    unreadNotificationsCount,
+    setUnreadNotificationsCount,
+  ] = useState(0);
 
+  // ======================================================
+  // LOGIN REDIRECT
+  // ======================================================
 
   const goToLogin = () => {
     router.replace(
-      createLoginUrl(
-        "/notifications"
-      )
+      createLoginUrl("/dashboard")
     );
   };
 
+  // ======================================================
+  // LOAD DASHBOARD DATA
+  // ======================================================
 
-  const loadNotifications =
-    async () => {
-      if (
-        !getAuthStorage()
-      ) {
-        goToLogin();
-        return;
-      }
-
+  useEffect(() => {
+    const loadDashboard = async () => {
       try {
-        setLoading(true);
-        setError("");
+        if (!getAuthStorage()) {
+          goToLogin();
+          return;
+        }
 
-        const response =
+        const storedUser =
+          getStoredUser();
+
+        if (storedUser) {
+          setUser(storedUser);
+        }
+
+        // ==================================================
+        // PROFILE
+        // ==================================================
+
+        const profileResponse =
           await authFetch(
-            `${API_URL}/api/notifications/notifications/`,
+            `${API_URL}/api/users/profile/`,
             {
               method: "GET",
               headers: {
@@ -92,89 +96,42 @@ export default function NotificationsPage() {
             }
           );
 
-        if (!response) {
+        if (!profileResponse) {
           goToLogin();
           return;
         }
 
         if (
-          response.status ===
-          401
+          profileResponse.status === 401
         ) {
           goToLogin();
           return;
         }
 
-        if (!response.ok) {
+        if (!profileResponse.ok) {
           throw new Error(
-            "Unable to load notifications."
+            "Unable to load your latest CareSphere profile."
           );
         }
 
-        const data =
-          await response.json();
+        const profileData =
+          await profileResponse.json();
 
-        const items =
-          Array.isArray(data)
-            ? data
-            : Array.isArray(
-                data.results
-              )
-            ? data.results
-            : [];
+        setUser(profileData);
 
-        setNotifications(
-          items
-        );
-      } catch (err) {
-        console.error(
-          "Notifications loading error:",
-          err
+        updateStoredUser(
+          profileData
         );
 
-        setError(
-          err.message ||
-            "We couldn't load your notifications."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+        // ==================================================
+        // SAVED PROVIDERS
+        // ==================================================
 
-
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
-
-  const unreadCount =
-    useMemo(
-      () =>
-        notifications.filter(
-          (item) =>
-            !item.is_read
-        ).length,
-      [notifications]
-    );
-
-
-  const performAction =
-    async (
-      notificationId,
-      action
-    ) => {
-      try {
-        setActionLoading(
-          `${notificationId}-${action}`
-        );
-
-        setError("");
-
-        const response =
+        const savedProvidersResponse =
           await authFetch(
-            `${API_URL}/api/notifications/notifications/${notificationId}/${action}/`,
+            `${API_URL}/api/family/saved-providers/`,
             {
-              method: "POST",
+              method: "GET",
               headers: {
                 "Content-Type":
                   "application/json",
@@ -182,68 +139,38 @@ export default function NotificationsPage() {
             }
           );
 
-        if (!response) {
-          goToLogin();
-          return;
-        }
-
         if (
-          response.status ===
-          401
+          savedProvidersResponse &&
+          savedProvidersResponse.ok
         ) {
-          goToLogin();
-          return;
-        }
+          const savedProvidersData =
+            await savedProvidersResponse.json();
 
-        if (!response.ok) {
-          throw new Error(
-            "Unable to update this notification."
+          const savedItems =
+            Array.isArray(
+              savedProvidersData
+            )
+              ? savedProvidersData
+              : Array.isArray(
+                  savedProvidersData.results
+                )
+              ? savedProvidersData.results
+              : [];
+
+          setSavedProvidersCount(
+            savedItems.length
           );
         }
 
-        const updated =
-          await response.json();
+        // ==================================================
+        // BOOKINGS / CARE REQUESTS
+        // ==================================================
 
-        setNotifications(
-          (current) =>
-            current.map(
-              (item) =>
-                item.id ===
-                updated.id
-                  ? updated
-                  : item
-            )
-        );
-      } catch (err) {
-        console.error(
-          "Notification update error:",
-          err
-        );
-
-        setError(
-          err.message ||
-            "We couldn't update this notification."
-        );
-      } finally {
-        setActionLoading("");
-      }
-    };
-
-
-  const markAllRead =
-    async () => {
-      try {
-        setActionLoading(
-          "mark-all-read"
-        );
-
-        setError("");
-
-        const response =
+        const bookingsResponse =
           await authFetch(
-            `${API_URL}/api/notifications/notifications/mark-all-read/`,
+            `${API_URL}/api/bookings/`,
             {
-              method: "POST",
+              method: "GET",
               headers: {
                 "Content-Type":
                   "application/json",
@@ -251,167 +178,156 @@ export default function NotificationsPage() {
             }
           );
 
-        if (!response) {
-          goToLogin();
-          return;
-        }
-
         if (
-          response.status ===
-          401
+          bookingsResponse &&
+          bookingsResponse.ok
         ) {
-          goToLogin();
-          return;
-        }
+          const bookingsData =
+            await bookingsResponse.json();
 
-        if (!response.ok) {
-          throw new Error(
-            "Unable to mark all notifications as read."
+          const bookingItems =
+            Array.isArray(
+              bookingsData
+            )
+              ? bookingsData
+              : Array.isArray(
+                  bookingsData.results
+                )
+              ? bookingsData.results
+              : [];
+
+          const activeBookings =
+            bookingItems.filter(
+              (booking) =>
+                ![
+                  "completed",
+                  "cancelled",
+                  "declined",
+                ].includes(
+                  booking.status
+                )
+            );
+
+          setBookingsCount(
+            activeBookings.length
           );
         }
 
-        setNotifications(
-          (current) =>
-            current.map(
-              (item) => ({
-                ...item,
-                is_read: true,
-              })
+        // ==================================================
+        // FAMILY CIRCLES
+        // ==================================================
+
+        const familyCirclesResponse =
+          await authFetch(
+            `${API_URL}/api/family/circles/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (
+          familyCirclesResponse &&
+          familyCirclesResponse.ok
+        ) {
+          const familyCirclesData =
+            await familyCirclesResponse.json();
+
+          const circleItems =
+            Array.isArray(
+              familyCirclesData
             )
-        );
-      } catch (err) {
+              ? familyCirclesData
+              : Array.isArray(
+                  familyCirclesData.results
+                )
+              ? familyCirclesData.results
+              : [];
+
+          setFamilyCircles(
+            circleItems
+          );
+        }
+
+        // ==================================================
+        // UNREAD NOTIFICATIONS
+        // ==================================================
+
+        const notificationsResponse =
+          await authFetch(
+            `${API_URL}/api/notifications/notifications/unread-count/`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+
+        if (
+          notificationsResponse &&
+          notificationsResponse.ok
+        ) {
+          const notificationData =
+            await notificationsResponse.json();
+
+          setUnreadNotificationsCount(
+            Number(
+              notificationData.unread_count
+            ) || 0
+          );
+        }
+
+      } catch (error) {
         console.error(
-          "Mark all read error:",
-          err
+          "Dashboard loading error:",
+          error
         );
 
-        setError(
-          err.message ||
-            "We couldn't update your notifications."
-        );
+        const storedUser =
+          getStoredUser();
+
+        if (storedUser) {
+          setUser(storedUser);
+        }
+
       } finally {
-        setActionLoading("");
+        setProfileLoading(false);
+        setAuthReady(true);
       }
     };
 
+    loadDashboard();
+  }, [router]);
 
-  const handleOpenNotification =
-    async (
-      notification
-    ) => {
-      if (
-        !notification.is_read
-      ) {
-        await performAction(
-          notification.id,
-          "mark-read"
-        );
-      }
+  // ======================================================
+  // SIGN OUT
+  // ======================================================
 
-      if (
-        notification.link
-      ) {
-        router.push(
-          notification.link
-        );
-      }
-    };
+  const handleSignOut = () => {
+    clearAuthSession();
 
-
-  const formatDate = (
-    value
-  ) => {
-    if (!value) {
-      return "";
-    }
-
-    return new Intl.DateTimeFormat(
-      "en-GB",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    ).format(
-      new Date(value)
-    );
+    router.replace("/");
   };
 
+  // ======================================================
+  // LOADING
+  // ======================================================
 
-  const getNotificationIcon = (
-    type
-  ) => {
-    if (
-      type === "success"
-    ) {
-      return CheckCircle2;
-    }
-
-    if (
-      type === "warning"
-    ) {
-      return AlertTriangle;
-    }
-
-    if (
-      type === "error"
-    ) {
-      return XCircle;
-    }
-
-    return Info;
-  };
-
-
-  const getIconClasses = (
-    type
-  ) => {
-    if (
-      type === "success"
-    ) {
-      return (
-        "bg-emerald-50 " +
-        "text-emerald-700"
-      );
-    }
-
-    if (
-      type === "warning"
-    ) {
-      return (
-        "bg-amber-50 " +
-        "text-amber-700"
-      );
-    }
-
-    if (
-      type === "error"
-    ) {
-      return (
-        "bg-red-50 " +
-        "text-red-700"
-      );
-    }
-
-    return (
-      "bg-blue-50 " +
-      "text-blue-700"
-    );
-  };
-
-
-  if (loading) {
+  if (!authReady || !user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#F7FAFC]">
 
         <div className="text-center">
 
-          <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#0F766E]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0F766E]" />
 
-          <p className="mt-4 text-sm font-semibold text-slate-500">
-            Loading notifications...
+          <p className="mt-4 text-sm font-medium text-slate-500">
+            Loading your CareSphere dashboard...
           </p>
 
         </div>
@@ -420,6 +336,261 @@ export default function NotificationsPage() {
     );
   }
 
+  // ======================================================
+  // USER INFORMATION
+  // ======================================================
+
+  const displayName =
+    user?.first_name?.trim() ||
+    user?.email?.split("@")[0] ||
+    "User";
+
+  const fullName =
+    `${user?.first_name || ""} ${
+      user?.last_name || ""
+    }`.trim() || displayName;
+
+  const isProvider =
+    user?.user_type === "provider";
+
+  // ======================================================
+  // PROFILE COMPLETION
+  // ======================================================
+
+  const profileFields = [
+    user?.first_name,
+    user?.last_name,
+    user?.email,
+    user?.phone_number,
+    user?.date_of_birth,
+  ];
+
+  const completedFields =
+    profileFields.filter(
+      (field) =>
+        field !== null &&
+        field !== undefined &&
+        String(field).trim() !== ""
+    ).length;
+
+  const profileCompletion =
+    Math.round(
+      (
+        completedFields /
+        profileFields.length
+      ) * 100
+    );
+
+  const profileComplete =
+    profileCompletion === 100;
+
+  // ======================================================
+  // FAMILY CIRCLE INFORMATION
+  // ======================================================
+
+  const familyCircleCount =
+    familyCircles.length;
+
+  const singleFamilyCircle =
+    familyCircleCount === 1
+      ? familyCircles[0]
+      : null;
+
+  const singleFamilyCircleServiceUserId =
+    singleFamilyCircle?.service_user ??
+    null;
+
+  const familyCircleHref =
+    singleFamilyCircleServiceUserId
+      ? `/family-circle?service_user=${singleFamilyCircleServiceUserId}`
+      : null;
+
+  // ======================================================
+  // PROVIDER STATS
+  // ======================================================
+
+  const providerStats = [
+    {
+      label: "New enquiries",
+      value: String(
+        bookingsCount
+      ),
+      icon: Bell,
+      note:
+        bookingsCount > 0
+          ? "Care requests are waiting for review"
+          : "No new enquiries yet",
+    },
+    {
+      label: "Upcoming bookings",
+      value: String(
+        bookingsCount
+      ),
+      icon: CalendarDays,
+      note:
+        bookingsCount > 0
+          ? "Active care requests and bookings"
+          : "No upcoming bookings",
+    },
+    {
+      label:
+        "Profile completion",
+      value:
+        `${profileCompletion}%`,
+      icon: User,
+      note: profileComplete
+        ? "Your personal profile is complete"
+        : "Complete your provider profile",
+    },
+    {
+      label: "Verification",
+      value:
+        user?.is_verified
+          ? "Verified"
+          : "Pending",
+      icon: ShieldCheck,
+      note:
+        user?.is_verified
+          ? "Your profile is verified"
+          : "Verification still required",
+    },
+  ];
+
+  // ======================================================
+  // FAMILY STATS
+  // ======================================================
+
+  const familyStats = [
+    {
+      label: "Saved providers",
+      value: String(
+        savedProvidersCount
+      ),
+      icon: Star,
+      note:
+        savedProvidersCount > 0
+          ? "View and compare your shortlist"
+          : "Build and manage your shortlist",
+    },
+    {
+      label:
+        "Upcoming bookings",
+      value: String(
+        bookingsCount
+      ),
+      icon: CalendarDays,
+      note:
+        bookingsCount > 0
+          ? "Active care requests and bookings"
+          : "No upcoming bookings",
+    },
+    {
+      label: "Family circle",
+      value: String(
+        familyCircleCount
+      ),
+      icon: Users,
+      href: familyCircleHref,
+      note:
+        familyCircleCount === 0
+          ? "You are not currently in a Family Circle"
+          : familyCircleCount === 1
+          ? "Open your Family Circle and collaborate"
+          : `You belong to ${familyCircleCount} Family Circles`,
+    },
+    {
+      label:
+        "Profile completion",
+      value:
+        `${profileCompletion}%`,
+      icon: User,
+      note: profileComplete
+        ? "Your profile is complete"
+        : "Add more details to your profile",
+    },
+  ];
+
+  // ======================================================
+  // QUICK ACTIONS
+  // ======================================================
+
+  const providerActions = [
+    {
+      title:
+        "Complete provider profile",
+      text:
+        "Add and manage your personal CareSphere details.",
+      icon: User,
+      href: "/profile",
+    },
+    {
+      title:
+        "Manage availability",
+      text:
+        "Update when your care team is available.",
+      icon: CalendarDays,
+      href: null,
+    },
+    {
+      title:
+        "Review enquiries",
+      text:
+        "Respond to families interested in your services.",
+      icon: Bell,
+      href: "/bookings",
+    },
+    {
+      title:
+        "Verification centre",
+      text:
+        "Manage your verification information and documents.",
+      icon: ShieldCheck,
+      href: null,
+    },
+  ];
+
+  const familyActions = [
+    {
+      title: "Find care",
+      text:
+        "Search and compare providers based on your needs.",
+      icon: Search,
+      href: "/find-care",
+    },
+    {
+      title:
+        "Saved providers",
+      text:
+        "Review care providers you have shortlisted.",
+      icon: Star,
+      href: "/saved-providers",
+    },
+    {
+      title:
+        "Family circle",
+      text:
+        familyCircleCount === 0
+          ? "Join or create a Family Circle to coordinate care."
+          : familyCircleCount === 1
+          ? "Open your Family Circle and collaborate on care."
+          : `You belong to ${familyCircleCount} Family Circles.`,
+      icon: Users,
+      href: familyCircleHref,
+    },
+    {
+      title:
+        "My bookings",
+      text:
+        "Review your care requests and bookings.",
+      icon: CalendarDays,
+      href: "/bookings",
+    },
+  ];
+
+  const quickActions =
+    isProvider
+      ? providerActions
+      : familyActions;
 
   return (
     <main className="min-h-screen bg-[#F7FAFC] text-slate-950">
@@ -428,310 +599,599 @@ export default function NotificationsPage() {
 
       <header className="border-b border-slate-200 bg-white">
 
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-5 py-4 lg:px-8">
+        <div className="mx-auto flex max-w-[1500px] items-center justify-between px-5 py-4 lg:px-8">
 
-          <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-3"
+          >
 
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F766E] text-white">
-              <Bell className="h-6 w-6" />
+
+              <HeartHandshake className="h-6 w-6" />
+
             </div>
 
             <div>
 
-              <h1 className="text-xl font-black">
-                Notifications
-              </h1>
+              <div className="text-xl font-extrabold tracking-tight">
 
-              <p className="text-xs text-slate-500">
-                CareSphere updates and activity
-              </p>
+                CareSphere
+
+                <span className="text-[#0F766E]">
+                  {" "}UK
+                </span>
+
+              </div>
+
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Care with confidence
+              </div>
 
             </div>
 
-          </div>
-
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-          >
-
-            <ArrowLeft className="h-4 w-4" />
-
-            Dashboard
-
           </Link>
+
+
+          <div className="flex items-center gap-3">
+
+            {/* NOTIFICATIONS */}
+
+            <Link
+              href="/notifications"
+              className="relative rounded-xl border border-slate-200 p-2.5 text-slate-500 transition hover:border-[#0F766E]/30 hover:bg-teal-50 hover:text-[#0F766E]"
+              aria-label="Notifications"
+            >
+
+              <Bell className="h-5 w-5" />
+
+              {unreadNotificationsCount >
+                0 && (
+
+                <span className="absolute -right-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white">
+
+                  {unreadNotificationsCount >
+                  9
+                    ? "9+"
+                    : unreadNotificationsCount}
+
+                </span>
+              )}
+
+            </Link>
+
+
+            <div className="hidden text-right md:block">
+
+              <div className="text-sm font-bold text-slate-900">
+                {displayName}
+              </div>
+
+              <div className="text-xs capitalize text-slate-500">
+
+                {user?.user_type ||
+                  "family"}{" "}
+                account
+
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              onClick={
+                handleSignOut
+              }
+              className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+            >
+
+              <LogOut className="h-4 w-4" />
+
+              <span className="hidden sm:inline">
+                Sign out
+              </span>
+
+            </button>
+
+          </div>
 
         </div>
 
       </header>
 
 
-      <div className="mx-auto max-w-[1200px] px-5 py-10 lg:px-8">
+      {/* PAGE */}
+
+      <div className="mx-auto max-w-[1500px] px-5 py-10 lg:px-8">
 
         {/* HERO */}
 
-        <section className="rounded-[30px] bg-[#071A2B] px-7 py-9 text-white shadow-xl md:px-10">
+        <section className="overflow-hidden rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12">
 
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
 
             <div>
 
               <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#6EE7D8]">
-                Notification centre
+                CareSphere dashboard
               </p>
 
-              <h2 className="mt-3 text-4xl font-black tracking-tight">
-                Stay on top of your care activity.
-              </h2>
+              <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
 
-              <p className="mt-3 max-w-2xl text-slate-300">
-                Booking updates, family activity, reminders and important CareSphere messages appear here.
-              </p>
+                Welcome back,{" "}
+                {displayName}.
 
-            </div>
+              </h1>
 
-            <div className="rounded-2xl bg-white/10 px-5 py-4">
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
 
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-300">
-                Unread
-              </p>
+                {isProvider
+                  ? "Manage your care profile, enquiries, bookings and availability from one place."
+                  : "Manage your care journey, saved providers, bookings and family decisions from one place."}
 
-              <p className="mt-1 text-3xl font-black">
-                {unreadCount}
               </p>
 
             </div>
 
-          </div>
 
-        </section>
-
-
-        {/* ERROR */}
-
-        {error && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
-            {error}
-          </div>
-        )}
-
-
-        {/* TOOLBAR */}
-
-        <section className="mt-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
-          <div>
-
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0F766E]">
-              Your notifications
-            </p>
-
-            <h3 className="mt-2 text-2xl font-black">
-              {notifications.length ===
-              1
-                ? "1 notification"
-                : `${notifications.length} notifications`}
-            </h3>
-
-          </div>
-
-          {unreadCount >
-            0 && (
-            <button
-              type="button"
-              onClick={
-                markAllRead
-              }
-              disabled={
-                actionLoading ===
-                "mark-all-read"
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F766E] px-5 py-3 text-sm font-bold text-white disabled:opacity-60"
+            <Link
+              href="/find-care"
+              className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#6EE7D8] px-6 py-3 font-bold text-[#071A2B] transition hover:bg-white"
             >
 
-              {actionLoading ===
-              "mark-all-read" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCheck className="h-4 w-4" />
-              )}
+              <Search className="h-5 w-5" />
 
-              Mark all as read
+              {isProvider
+                ? "View marketplace"
+                : "Find care"}
 
-            </button>
-          )}
+            </Link>
+
+          </div>
 
         </section>
 
 
-        {/* EMPTY STATE */}
+        {/* STATS */}
 
-        {notifications.length ===
-          0 && (
-          <section className="mt-8 rounded-[28px] border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+        <section className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-              <BellOff className="h-8 w-8" />
-            </div>
+          {(isProvider
+            ? providerStats
+            : familyStats
+          ).map((item) => {
 
-            <h3 className="mt-6 text-2xl font-black">
-              No notifications yet
-            </h3>
+            const Icon =
+              item.icon;
 
-            <p className="mx-auto mt-3 max-w-lg leading-7 text-slate-500">
-              Booking updates, Family Circle activity and other CareSphere alerts will appear here.
-            </p>
+            const cardContent = (
+              <>
 
-          </section>
-        )}
+                <div className="flex items-start justify-between gap-4">
 
+                  <div>
 
-        {/* NOTIFICATION LIST */}
+                    <p className="text-sm font-semibold text-slate-500">
+                      {item.label}
+                    </p>
 
-        {notifications.length >
-          0 && (
-          <section className="mt-8 space-y-4">
+                    <p className="mt-2 text-3xl font-black text-slate-950">
+                      {item.value}
+                    </p>
 
-            {notifications.map(
-              (notification) => {
-                const Icon =
-                  getNotificationIcon(
-                    notification.notification_type
-                  );
+                  </div>
 
-                const isBusy =
-                  actionLoading.startsWith(
-                    notification.id
-                  );
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-[#0F766E]">
 
-                return (
-                  <article
-                    key={
-                      notification.id
-                    }
-                    className={`rounded-[24px] border p-5 shadow-sm transition ${
-                      notification.is_read
-                        ? "border-slate-200 bg-white"
-                        : "border-teal-200 bg-teal-50/40"
-                    }`}
-                  >
+                    <Icon className="h-5 w-5" />
 
-                    <div className="flex gap-4">
+                  </div>
+
+                </div>
+
+                <p className="mt-4 text-sm leading-6 text-slate-500">
+                  {item.note}
+                </p>
+
+                {item.label ===
+                  "Profile completion" && (
+
+                  <div className="mt-4">
+
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
 
                       <div
-                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${getIconClasses(
-                          notification.notification_type
-                        )}`}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-
-                        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
-
-                          <div>
-
-                            <div className="flex items-center gap-2">
-
-                              <h4 className="font-black text-slate-900">
-                                {notification.title}
-                              </h4>
-
-                              {!notification.is_read && (
-                                <span className="h-2.5 w-2.5 rounded-full bg-[#0F766E]" />
-                              )}
-
-                            </div>
-
-                            <p className="mt-2 leading-6 text-slate-600">
-                              {notification.message}
-                            </p>
-
-                          </div>
-
-                          <p className="shrink-0 text-xs text-slate-400">
-                            {formatDate(
-                              notification.created_at
-                            )}
-                          </p>
-
-                        </div>
-
-
-                        <div className="mt-5 flex flex-wrap gap-3">
-
-                          {notification.link && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleOpenNotification(
-                                  notification
-                                )
-                              }
-                              disabled={
-                                isBusy
-                              }
-                              className="rounded-xl bg-[#0F766E] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-                            >
-                              Open
-                            </button>
-                          )}
-
-                          {!notification.is_read ? (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                performAction(
-                                  notification.id,
-                                  "mark-read"
-                                )
-                              }
-                              disabled={
-                                isBusy
-                              }
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
-                            >
-
-                              <CheckCircle2 className="h-4 w-4" />
-
-                              Mark read
-
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                performAction(
-                                  notification.id,
-                                  "mark-unread"
-                                )
-                              }
-                              disabled={
-                                isBusy
-                              }
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
-                            >
-
-                              <Circle className="h-4 w-4" />
-
-                              Mark unread
-
-                            </button>
-                          )}
-
-                        </div>
-
-                      </div>
+                        className="h-full rounded-full bg-[#0F766E] transition-all duration-500"
+                        style={{
+                          width:
+                            `${profileCompletion}%`,
+                        }}
+                      />
 
                     </div>
 
-                  </article>
-                );
-              }
-            )}
+                  </div>
+                )}
 
-          </section>
+              </>
+            );
+
+            if (item.href) {
+
+              return (
+                <Link
+                  key={
+                    item.label
+                  }
+                  href={
+                    item.href
+                  }
+                  className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)] transition hover:border-[#0F766E]/40 hover:bg-teal-50/30"
+                >
+
+                  {cardContent}
+
+                </Link>
+              );
+            }
+
+            return (
+              <div
+                key={
+                  item.label
+                }
+                className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]"
+              >
+
+                {cardContent}
+
+              </div>
+            );
+          })}
+
+        </section>
+
+
+        {/* MAIN CONTENT */}
+
+        <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+
+          <div className="space-y-8">
+
+
+            {/* QUICK ACTIONS */}
+
+            <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
+
+              <div className="mb-6">
+
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0F766E]">
+                  Quick actions
+                </p>
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight">
+                  What would you like to do?
+                </h2>
+
+              </div>
+
+
+              <div className="grid gap-4 md:grid-cols-2">
+
+                {quickActions.map(
+                  (action) => {
+
+                    const Icon =
+                      action.icon;
+
+                    if (
+                      action.href
+                    ) {
+
+                      return (
+                        <Link
+                          key={
+                            action.title
+                          }
+                          href={
+                            action.href
+                          }
+                          className="group rounded-2xl border border-slate-200 p-5 text-left transition hover:border-[#0F766E]/40 hover:bg-teal-50/40"
+                        >
+
+                          <div className="mb-4 flex items-center justify-between">
+
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-[#0F766E] transition group-hover:bg-white">
+
+                              <Icon className="h-5 w-5" />
+
+                            </div>
+
+                            <ArrowRight className="h-5 w-5 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#0F766E]" />
+
+                          </div>
+
+
+                          <h3 className="text-lg font-extrabold text-slate-950">
+                            {
+                              action.title
+                            }
+                          </h3>
+
+
+                          <p className="mt-2 text-sm leading-6 text-slate-500">
+                            {
+                              action.text
+                            }
+                          </p>
+
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={
+                          action.title
+                        }
+                        type="button"
+                        className="group rounded-2xl border border-slate-200 p-5 text-left transition hover:border-[#0F766E]/40 hover:bg-teal-50/40"
+                      >
+
+                        <div className="mb-4 flex items-center justify-between">
+
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-[#0F766E] transition group-hover:bg-white">
+
+                            <Icon className="h-5 w-5" />
+
+                          </div>
+
+                          <ArrowRight className="h-5 w-5 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#0F766E]" />
+
+                        </div>
+
+
+                        <h3 className="text-lg font-extrabold text-slate-950">
+                          {
+                            action.title
+                          }
+                        </h3>
+
+
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          {
+                            action.text
+                          }
+                        </p>
+
+                      </button>
+                    );
+                  }
+                )}
+
+              </div>
+
+            </div>
+
+
+            {/* RECENT ACTIVITY */}
+
+            <div className="rounded-[28px] border border-slate-200 bg-white p-7 shadow-sm">
+
+              <div>
+
+                <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0F766E]">
+                  Recent activity
+                </p>
+
+                <h2 className="mt-2 text-2xl font-black tracking-tight">
+                  Your latest CareSphere activity
+                </h2>
+
+              </div>
+
+
+              <div className="mt-7 rounded-2xl bg-slate-50 px-6 py-10 text-center">
+
+                {bookingsCount >
+                0 ? (
+                  <>
+
+                    <CalendarDays className="mx-auto h-8 w-8 text-[#0F766E]" />
+
+                    <h3 className="mt-4 font-bold text-slate-800">
+                      You have active care requests
+                    </h3>
+
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                      Track your pending and upcoming care arrangements from My Bookings.
+                    </p>
+
+                    <Link
+                      href="/bookings"
+                      className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0F766E] px-5 py-3 text-sm font-bold text-white"
+                    >
+
+                      View bookings
+
+                      <ArrowRight className="h-4 w-4" />
+
+                    </Link>
+
+                  </>
+                ) : (
+                  <>
+
+                    <CheckCircle2 className="mx-auto h-8 w-8 text-slate-300" />
+
+                    <h3 className="mt-4 font-bold text-slate-800">
+                      Nothing here yet
+                    </h3>
+
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                      Your bookings, saved providers, enquiries and other activity will appear here.
+                    </p>
+
+                  </>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* SIDE PANEL */}
+
+          <aside className="space-y-6">
+
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0F766E] text-xl font-black text-white">
+
+                {displayName
+                  .charAt(0)
+                  .toUpperCase()}
+
+              </div>
+
+
+              <h3 className="mt-5 text-xl font-black">
+                {fullName}
+              </h3>
+
+
+              <p className="mt-1 break-all text-sm text-slate-500">
+                {user?.email}
+              </p>
+
+
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+
+                <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-bold capitalize text-[#0F766E]">
+
+                  {isProvider
+                    ? "Care Provider"
+                    : "Family Account"}
+
+                </span>
+
+
+                {user?.is_verified ? (
+
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                    Verified
+                  </span>
+
+                ) : (
+
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                    Verification pending
+                  </span>
+
+                )}
+
+              </div>
+
+
+              <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">
+
+                <div className="flex items-center justify-between text-sm">
+
+                  <span className="text-slate-500">
+                    Profile
+                  </span>
+
+                  <span className="font-bold text-slate-900">
+
+                    {
+                      profileCompletion
+                    }%
+
+                  </span>
+
+                </div>
+
+
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+
+                  <div
+                    className="h-full rounded-full bg-[#0F766E] transition-all duration-500"
+                    style={{
+                      width:
+                        `${profileCompletion}%`,
+                    }}
+                  />
+
+                </div>
+
+
+                {user?.phone_number && (
+
+                  <p className="text-sm text-slate-500">
+                    {
+                      user.phone_number
+                    }
+                  </p>
+
+                )}
+
+              </div>
+
+
+              <Link
+                href="/profile"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-700 transition hover:border-[#0F766E]/40 hover:bg-teal-50"
+              >
+
+                <Settings className="h-4 w-4" />
+
+                Account settings
+
+              </Link>
+
+            </div>
+
+
+            <div className="rounded-[28px] bg-gradient-to-br from-[#0F766E] to-[#0A5B69] p-6 text-white shadow-xl">
+
+              <HeartHandshake className="h-7 w-7 text-[#6EE7D8]" />
+
+
+              <h3 className="mt-5 text-xl font-black">
+                Need some help?
+              </h3>
+
+
+              <p className="mt-3 text-sm leading-6 text-teal-50/90">
+                CareSphere is here to make your care journey easier.
+              </p>
+
+
+              <button
+                type="button"
+                className="mt-5 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#0F766E]"
+              >
+
+                Contact support
+
+              </button>
+
+            </div>
+
+          </aside>
+
+        </section>
+
+
+        {profileLoading && (
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            Updating your latest profile information...
+          </p>
+
         )}
 
       </div>
