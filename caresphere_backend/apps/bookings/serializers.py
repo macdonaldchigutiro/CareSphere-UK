@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.care_providers.models import StaffMember
 from apps.family.models import CareCircleMember
 
 from .models import Booking
@@ -28,6 +29,31 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    # ======================================================
+    # ASSIGNED STAFF
+    # ======================================================
+
+    assigned_staff = serializers.PrimaryKeyRelatedField(
+        queryset=StaffMember.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    assigned_staff_name = serializers.CharField(
+        source="assigned_staff.full_name",
+        read_only=True,
+    )
+
+    assigned_staff_role = serializers.CharField(
+        source="assigned_staff.get_role_display",
+        read_only=True,
+    )
+
+    assigned_staff_available = serializers.BooleanField(
+        source="assigned_staff.is_available",
+        read_only=True,
+    )
+
     status_display = serializers.CharField(
         source="get_status_display",
         read_only=True,
@@ -49,6 +75,10 @@ class BookingSerializer(serializers.ModelSerializer):
             "provider",
             "provider_name",
             "provider_city",
+            "assigned_staff",
+            "assigned_staff_name",
+            "assigned_staff_role",
+            "assigned_staff_available",
             "service_user",
             "service_user_name",
             "care_recipient_name",
@@ -72,6 +102,9 @@ class BookingSerializer(serializers.ModelSerializer):
             "user_email",
             "provider_name",
             "provider_city",
+            "assigned_staff_name",
+            "assigned_staff_role",
+            "assigned_staff_available",
             "service_user_name",
             "care_recipient_name",
             "status",
@@ -81,6 +114,10 @@ class BookingSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
+    # ======================================================
+    # DISPLAY HELPERS
+    # ======================================================
+
     def get_user_name(
         self,
         obj,
@@ -88,6 +125,10 @@ class BookingSerializer(serializers.ModelSerializer):
         full_name = obj.user.get_full_name().strip()
 
         return full_name or obj.user.email
+
+    # ======================================================
+    # SERVICE USER VALIDATION
+    # ======================================================
 
     def validate_service_user(
         self,
@@ -139,6 +180,53 @@ class BookingSerializer(serializers.ModelSerializer):
             "you to create bookings for this care recipient."
         )
 
+    # ======================================================
+    # STAFF VALIDATION
+    # ======================================================
+
+    def validate_assigned_staff(
+        self,
+        staff_member,
+    ):
+        if staff_member is None:
+            return None
+
+        request = self.context.get("request")
+
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("You must be logged in to assign staff.")
+
+        user = request.user
+
+        # Django administrators may assign staff.
+        if user.is_staff or user.is_superuser:
+            return staff_member
+
+        # Staff assignment is a provider-side operation.
+        try:
+            provider = user.care_provider
+        except Exception:
+            raise serializers.ValidationError(
+                "Only the care provider can assign staff " "to this booking."
+            )
+
+        if staff_member.provider_id != provider.id:
+            raise serializers.ValidationError(
+                "This staff member does not belong "
+                "to your care provider organisation."
+            )
+
+        if not staff_member.is_active:
+            raise serializers.ValidationError(
+                "This staff member is inactive and " "cannot be assigned to a booking."
+            )
+
+        return staff_member
+
+    # ======================================================
+    # BOOKING VALIDATION
+    # ======================================================
+
     def validate(
         self,
         attrs,
@@ -164,6 +252,38 @@ class BookingSerializer(serializers.ModelSerializer):
         if start_time and end_time and end_time <= start_time:
             raise serializers.ValidationError(
                 {"end_time": ("End time must be later " "than start time.")}
+            )
+
+        # --------------------------------------------------
+        # ASSIGNED STAFF MUST BELONG TO BOOKING PROVIDER
+        # --------------------------------------------------
+
+        assigned_staff = attrs.get(
+            "assigned_staff",
+            getattr(
+                self.instance,
+                "assigned_staff",
+                None,
+            ),
+        )
+
+        provider = attrs.get(
+            "provider",
+            getattr(
+                self.instance,
+                "provider",
+                None,
+            ),
+        )
+
+        if assigned_staff and provider and assigned_staff.provider_id != provider.id:
+            raise serializers.ValidationError(
+                {
+                    "assigned_staff": (
+                        "The assigned staff member must belong "
+                        "to the provider responsible for this booking."
+                    )
+                }
             )
 
         return attrs

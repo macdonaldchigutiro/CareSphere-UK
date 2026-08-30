@@ -627,8 +627,26 @@ export default function ProviderDetailsPage() {
       }
 
       if (
-        bookingForm.start_time &&
-        bookingForm.end_time &&
+        !bookingForm.start_time
+      ) {
+        setError(
+          "Please choose the preferred start date and time."
+        );
+
+        return;
+      }
+
+      if (
+        !bookingForm.end_time
+      ) {
+        setError(
+          "Please choose the preferred end date and time."
+        );
+
+        return;
+      }
+
+      if (
         new Date(
           bookingForm.end_time
         ) <=
@@ -637,7 +655,7 @@ export default function ProviderDetailsPage() {
           )
       ) {
         setError(
-          "End time must be later than start time."
+          "End date and time must be later than the start date and time."
         );
 
         return;
@@ -1855,6 +1873,7 @@ export default function ProviderDetailsPage() {
                     onChange={
                       handleBookingChange
                     }
+                    required
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3.5 outline-none focus:border-[#0F766E]"
                   />
 
@@ -1875,12 +1894,18 @@ export default function ProviderDetailsPage() {
                     onChange={
                       handleBookingChange
                     }
+                    required
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3.5 outline-none focus:border-[#0F766E]"
                   />
 
                 </div>
 
               </div>
+
+              <p className="-mt-2 text-xs leading-5 text-slate-500">
+                Start and end date/time are required so the provider can check
+                staff availability before confirming the booking.
+              </p>
 
 
               {/* REQUIREMENTS */}

@@ -446,5 +446,15 @@ class AvailabilitySlot(models.Model):
         """Check if slot is in the past"""
         from django.utils import timezone
 
-        slot_datetime = timezone.datetime.combine(self.start_date, self.start_time)
+        slot_datetime = timezone.datetime.combine(
+        self.start_date,
+        self.start_time,
+    )
+
+        if timezone.is_naive(slot_datetime):
+            slot_datetime = timezone.make_aware(
+            slot_datetime,
+            timezone.get_current_timezone(),
+        )
+
         return slot_datetime < timezone.now()

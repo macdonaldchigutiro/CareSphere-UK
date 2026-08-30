@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.care_providers.models import CareProvider
+from apps.care_providers.models import CareProvider, StaffMember
 from apps.service_users.models import ServiceUserProfile
 
 import uuid
@@ -28,11 +28,19 @@ class Booking(models.Model):
         LIVE_IN = "live_in", "Live-in care"
         FLEXIBLE = "flexible", "Flexible / To be discussed"
 
+    # ======================================================
+    # PRIMARY KEY
+    # ======================================================
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
     )
+
+    # ======================================================
+    # BOOKING OWNER / PROVIDER
+    # ======================================================
 
     user = models.ForeignKey(
         "users.User",
@@ -44,6 +52,14 @@ class Booking(models.Model):
         CareProvider,
         on_delete=models.CASCADE,
         related_name="bookings",
+    )
+
+    assigned_staff = models.ForeignKey(
+        StaffMember,
+        on_delete=models.SET_NULL,
+        related_name="assigned_bookings",
+        null=True,
+        blank=True,
     )
 
     # ======================================================
