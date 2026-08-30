@@ -1,0 +1,62 @@
+from django.contrib import admin
+
+from .models import Notification
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "recipient",
+        "notification_type",
+        "is_read",
+        "created_at",
+    )
+
+    list_filter = (
+        "notification_type",
+        "is_read",
+        "created_at",
+    )
+
+    search_fields = (
+        "title",
+        "message",
+        "recipient__email",
+        "recipient__username",
+        "link",
+    )
+
+    ordering = ("-created_at",)
+
+    readonly_fields = (
+        "id",
+        "created_at",
+    )
+
+    list_select_related = ("recipient",)
+
+    fieldsets = (
+        (
+            "Notification",
+            {
+                "fields": (
+                    "id",
+                    "recipient",
+                    "notification_type",
+                    "title",
+                    "message",
+                    "link",
+                )
+            },
+        ),
+        (
+            "Status",
+            {
+                "fields": (
+                    "is_read",
+                    "created_at",
+                )
+            },
+        ),
+    )
