@@ -2,11 +2,11 @@
 Care Provider Models
 """
 
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-
 # from django.contrib.auth.models import User  ← DELETE THIS LINE
 import uuid
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class CareProvider(models.Model):
@@ -195,6 +195,66 @@ class CareProvider(models.Model):
         if self.cqc_verified and self.cqc_location_id:
             return f"CQC Registered - Rating: {self.cqc_rating or 'Not Rated'}"
         return "Not CQC Registered"
+
+
+class ExternalProviderLocation(models.Model):
+    """A discoverable care location imported from the public CQC directory."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # CQC identifiers are the stable keys used for idempotent imports.
+    cqc_location_id = models.CharField(max_length=50, unique=True)
+    cqc_provider_id = models.CharField(max_length=50, blank=True)
+
+    # Directory identity and contact details.
+    name = models.CharField(max_length=255)
+    also_known_as = models.CharField(max_length=255, blank=True)
+    provider_name = models.CharField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
+    postcode = models.CharField(max_length=12, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    website = models.URLField(max_length=500, blank=True)
+
+    # CQC classification fields. The original labels are retained while
+    # care_types provides CareSphere's smaller discovery taxonomy.
+    service_types = models.JSONField(default=list)
+    specialisms = models.JSONField(default=list)
+    care_types = models.JSONField(default=list)
+
+    local_authority = models.CharField(max_length=150, blank=True)
+    region = models.CharField(max_length=150, blank=True)
+    location_url = models.URLField(max_length=500)
+    latest_check_date = models.DateField(null=True, blank=True)
+
+    # Import provenance and lifecycle.
+    source_published_on = models.DateField(null=True, blank=True)
+    content_hash = models.CharField(max_length=64)
+    search_document = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    first_imported_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "External Provider Location"
+        verbose_name_plural = "External Provider Locations"
+        ordering = ["name", "postcode"]
+        indexes = [
+            models.Index(fields=["postcode"], name="ext_provider_postcode_idx"),
+            models.Index(
+                fields=["local_authority"], name="ext_provider_authority_idx"
+            ),
+            models.Index(fields=["region"], name="ext_provider_region_idx"),
+            models.Index(
+                fields=["is_active", "postcode"], name="ext_provider_active_post_idx"
+            ),
+            models.Index(
+                fields=["is_active", "name"], name="ext_provider_active_name_idx"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.cqc_location_id})"
 
 
 class ProviderSpecialization(models.Model):

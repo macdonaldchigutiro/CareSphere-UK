@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
 from .models import (
+    AvailabilitySlot,
     CareProvider,
+    ExternalProviderLocation,
     ProviderSpecialization,
     StaffMember,
-    AvailabilitySlot,
 )
 
 # ======================================================
@@ -59,6 +60,70 @@ class CareProviderSerializer(serializers.ModelSerializer):
             "verification_date",
             "verified_by",
         )
+
+
+class ExternalProviderLocationSerializer(serializers.ModelSerializer):
+    """Present a CQC directory row in CareSphere's discovery result shape."""
+
+    company_name = serializers.CharField(source="name", read_only=True)
+    trading_name = serializers.CharField(source="also_known_as", read_only=True)
+    address_line1 = serializers.CharField(source="address", read_only=True)
+    specializations = serializers.JSONField(source="specialisms", read_only=True)
+    county = serializers.CharField(source="local_authority", read_only=True)
+    cqc_report_url = serializers.URLField(source="location_url", read_only=True)
+
+    class Meta:
+        model = ExternalProviderLocation
+        fields = (
+            "id",
+            "company_name",
+            "trading_name",
+            "provider_name",
+            "address_line1",
+            "postcode",
+            "phone",
+            "website",
+            "service_types",
+            "specializations",
+            "care_types",
+            "county",
+            "region",
+            "cqc_location_id",
+            "cqc_provider_id",
+            "cqc_report_url",
+            "latest_check_date",
+            "source_published_on",
+        )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.update(
+            {
+                "source": "cqc_directory",
+                "city": "",
+                "country": "England",
+                "email": "",
+                "business_type": "external_directory",
+                "is_verified": False,
+                "verification_badge": "CQC registered",
+                "cqc_verified": True,
+                "cqc_registered": True,
+                "cqc_rating": None,
+                "cqc_status": "CQC registered location",
+                "availability_status": "unknown",
+                "hourly_rate_min": None,
+                "hourly_rate_max": None,
+                "live_in_rate_min": None,
+                "live_in_rate_max": None,
+                "accepts_nhs_funding": None,
+                "accepts_local_authority_funding": None,
+                "accepts_private_pay": None,
+                "can_book": False,
+                "can_save": False,
+                "external_url": instance.location_url,
+            }
+        )
+        return data
 
 
 # ======================================================

@@ -41,6 +41,11 @@ urlpatterns = [
     # PUBLIC PROVIDERS
     # ==================================================
     path(
+        "discovery/",
+        views.ProviderDiscoveryView.as_view(),
+        name="provider-discovery",
+    ),
+    path(
         "providers/",
         views.CareProviderListView.as_view(),
         name="provider-list",

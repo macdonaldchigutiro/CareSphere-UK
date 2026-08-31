@@ -1,5 +1,6 @@
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
+
 import environ
 
 # ======================================================
@@ -131,11 +132,17 @@ WSGI_APPLICATION = "caresphere_backend.wsgi.application"
 # Supabase PostgreSQL
 # ======================================================
 
-DATABASES = {"default": env.db("DATABASE_URL")}
-
-DATABASES["default"]["OPTIONS"] = {
-    "sslmode": "require",
+DATABASES = {
+    "default": env.db(
+        "DATABASE_URL",
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    )
 }
+
+# Supabase/PostgreSQL requires TLS. SQLite is retained for local development
+# and automated tests, matching the repository's documented setup.
+if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+    DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "require"
 
 
 # ======================================================

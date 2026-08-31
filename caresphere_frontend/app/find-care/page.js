@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -10,6 +10,7 @@ import {
   BadgeCheck,
   Building2,
   CheckCircle2,
+  ExternalLink,
   Heart,
   HeartHandshake,
   Loader2,
@@ -41,6 +42,16 @@ export default function FindCarePage() {
     useState("all");
   const [cqcFilter, setCqcFilter] = useState("all");
   const [fundingFilter, setFundingFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [careTypeFilter, setCareTypeFilter] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [resultCount, setResultCount] = useState(0);
+  const [sourceCounts, setSourceCounts] = useState({
+    caresphere: 0,
+    cqc_directory: 0,
+  });
 
   const [loading, setLoading] = useState(true);
   const [savingProviderId, setSavingProviderId] =
@@ -50,18 +61,39 @@ export default function FindCarePage() {
   const [message, setMessage] = useState("");
 
   // ======================================================
-  // LOAD PROVIDERS
-  // Public endpoint - login not required
+  // LOAD DISCOVERY RESULTS
+  // Public endpoint - login not required. Search and filters run on the
+  // backend so the complete CQC index can be queried, not just one page.
   // ======================================================
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const loadProviders = async () => {
       try {
         setLoading(true);
         setError("");
 
+        const params = new URLSearchParams({
+          page: String(page),
+          page_size: "24",
+          source: sourceFilter,
+          verification: verificationFilter,
+          cqc_rating: cqcFilter,
+          funding: fundingFilter,
+        });
+
+        if (searchTerm.trim()) {
+          params.set("q", searchTerm.trim());
+        }
+
+        if (careTypeFilter) {
+          params.set("care_type", careTypeFilter);
+        }
+
         const response = await fetch(
-          `${API_URL}/api/care-providers/providers/`
+          `${API_URL}/api/care-providers/discovery/?${params.toString()}`,
+          { signal: controller.signal }
         );
 
         if (!response.ok) {
@@ -72,14 +104,24 @@ export default function FindCarePage() {
 
         const data = await response.json();
 
-        if (Array.isArray(data)) {
-          setProviders(data);
-        } else if (Array.isArray(data.results)) {
-          setProviders(data.results);
-        } else {
-          setProviders([]);
-        }
+        setProviders(
+          Array.isArray(data.results)
+            ? data.results
+            : []
+        );
+        setResultCount(Number(data.count) || 0);
+        setTotalPages(Number(data.total_pages) || 0);
+        setSourceCounts({
+          caresphere:
+            Number(data.source_counts?.caresphere) || 0,
+          cqc_directory:
+            Number(data.source_counts?.cqc_directory) || 0,
+        });
       } catch (err) {
+        if (err.name === "AbortError") {
+          return;
+        }
+
         console.error(
           "Provider loading error:",
           err
@@ -88,13 +130,49 @@ export default function FindCarePage() {
         setError(
           "We couldn't load care providers. Please make sure the CareSphere backend is running."
         );
+        setProviders([]);
+        setResultCount(0);
+        setTotalPages(0);
+        setSourceCounts({
+          caresphere: 0,
+          cqc_directory: 0,
+        });
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
-    loadProviders();
-  }, []);
+    const debounce = window.setTimeout(
+      loadProviders,
+      searchTerm.trim() ? 300 : 0
+    );
+
+    return () => {
+      window.clearTimeout(debounce);
+      controller.abort();
+    };
+  }, [
+    searchTerm,
+    verificationFilter,
+    cqcFilter,
+    fundingFilter,
+    sourceFilter,
+    careTypeFilter,
+    page,
+  ]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    searchTerm,
+    verificationFilter,
+    cqcFilter,
+    fundingFilter,
+    sourceFilter,
+    careTypeFilter,
+  ]);
 
   // ======================================================
   // LOAD SAVED PROVIDER STATUS
@@ -165,101 +243,6 @@ export default function FindCarePage() {
 
     loadSavedProviders();
   }, []);
-
-  // ======================================================
-  // FILTER PROVIDERS
-  // ======================================================
-
-  const filteredProviders = useMemo(() => {
-    const query =
-      searchTerm.trim().toLowerCase();
-
-    return providers.filter((provider) => {
-      const searchableText = [
-        provider.company_name,
-        provider.trading_name,
-        provider.city,
-        provider.county,
-        provider.postcode,
-        provider.business_type,
-
-        ...(Array.isArray(
-          provider.care_types
-        )
-          ? provider.care_types
-          : []),
-
-        ...(Array.isArray(
-          provider.specializations
-        )
-          ? provider.specializations
-          : []),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      const matchesSearch =
-        !query ||
-        searchableText.includes(query);
-
-      const matchesVerification =
-        verificationFilter === "all" ||
-        (verificationFilter ===
-          "verified" &&
-          provider.is_verified) ||
-        (verificationFilter ===
-          "pending" &&
-          !provider.is_verified);
-
-      const matchesCqc =
-        cqcFilter === "all" ||
-        String(
-          provider.cqc_rating || ""
-        )
-          .toLowerCase()
-          .replaceAll(" ", "_") ===
-          cqcFilter;
-
-      let matchesFunding = true;
-
-      if (fundingFilter === "nhs") {
-        matchesFunding =
-          provider.accepts_nhs_funding ===
-          true;
-      }
-
-      if (
-        fundingFilter ===
-        "local_authority"
-      ) {
-        matchesFunding =
-          provider.accepts_local_authority_funding ===
-          true;
-      }
-
-      if (
-        fundingFilter === "private"
-      ) {
-        matchesFunding =
-          provider.accepts_private_pay ===
-          true;
-      }
-
-      return (
-        matchesSearch &&
-        matchesVerification &&
-        matchesCqc &&
-        matchesFunding
-      );
-    });
-  }, [
-    providers,
-    searchTerm,
-    verificationFilter,
-    cqcFilter,
-    fundingFilter,
-  ]);
 
   // ======================================================
   // REQUIRE LOGIN
@@ -542,6 +525,9 @@ export default function FindCarePage() {
     setVerificationFilter("all");
     setCqcFilter("all");
     setFundingFilter("all");
+    setSourceFilter("all");
+    setCareTypeFilter("");
+    setPage(1);
   };
 
   return (
@@ -694,6 +680,86 @@ export default function FindCarePage() {
               <div className="mt-7">
 
                 <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Directory source
+                </label>
+
+                <select
+                  value={sourceFilter}
+                  onChange={(event) =>
+                    setSourceFilter(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#0F766E]"
+                >
+                  <option value="all">
+                    All sources
+                  </option>
+
+                  <option value="caresphere">
+                    CareSphere providers
+                  </option>
+
+                  <option value="cqc_directory">
+                    CQC directory
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="mt-5">
+
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Care type
+                </label>
+
+                <select
+                  value={careTypeFilter}
+                  onChange={(event) =>
+                    setCareTypeFilter(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#0F766E]"
+                >
+                  <option value="">
+                    All care types
+                  </option>
+
+                  <option value="domiciliary">
+                    Domiciliary care
+                  </option>
+
+                  <option value="residential">
+                    Residential care
+                  </option>
+
+                  <option value="nursing">
+                    Nursing care
+                  </option>
+
+                  <option value="specialist">
+                    Specialist care
+                  </option>
+
+                  <option value="live_in">
+                    Live-in care
+                  </option>
+
+                  <option value="respite">
+                    Respite care
+                  </option>
+
+                  <option value="day_care">
+                    Day care
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="mt-5">
+
+                <label className="mb-2 block text-sm font-bold text-slate-700">
                   Provider verification
                 </label>
 
@@ -713,11 +779,15 @@ export default function FindCarePage() {
                   </option>
 
                   <option value="verified">
-                    Verified
+                    CareSphere verified
                   </option>
 
-                  <option value="pending">
-                    Not yet verified
+                  <option value="cqc">
+                    CQC registered
+                  </option>
+
+                  <option value="unverified">
+                    CareSphere unverified
                   </option>
                 </select>
 
@@ -826,14 +896,40 @@ export default function FindCarePage() {
 
               {!loading && (
                 <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-500">
-                  {
-                    filteredProviders.length
-                  }{" "}
-                  found
+                  {resultCount} found
                 </div>
               )}
 
             </div>
+
+            {!loading && resultCount > 0 && (
+              <div className="mb-6">
+                <div className="flex flex-wrap gap-2 text-xs font-bold">
+                  <span className="rounded-full bg-teal-50 px-3 py-1.5 text-teal-700">
+                    {sourceCounts.caresphere} CareSphere
+                  </span>
+
+                  <span className="rounded-full bg-blue-50 px-3 py-1.5 text-blue-700">
+                    {sourceCounts.cqc_directory} CQC directory
+                  </span>
+                </div>
+
+                {sourceCounts.cqc_directory > 0 && (
+                  <p className="mt-3 text-xs leading-5 text-slate-500">
+                    Contains public Care Quality Commission information used under the{" "}
+                    <a
+                      href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-[#0F766E] underline"
+                    >
+                      Open Government Licence
+                    </a>
+                    . Check each CQC profile for the latest details.
+                  </p>
+                )}
+              </div>
+            )}
 
             {loading && (
               <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-20 text-center">
@@ -848,7 +944,7 @@ export default function FindCarePage() {
             )}
 
             {!loading &&
-              filteredProviders.length ===
+              providers.length ===
                 0 && (
                 <div className="rounded-[28px] border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
 
@@ -878,12 +974,17 @@ export default function FindCarePage() {
               )}
 
             {!loading &&
-              filteredProviders.length >
+              providers.length >
                 0 && (
+                <>
                 <div className="grid gap-6 xl:grid-cols-2">
 
-                  {filteredProviders.map(
+                  {providers.map(
                     (provider) => {
+                      const isExternal =
+                        provider.source ===
+                        "cqc_directory";
+
                       const isSaved =
                         Boolean(
                           savedProviders[
@@ -900,6 +1001,18 @@ export default function FindCarePage() {
                         formatPrice(
                           provider.hourly_rate_max
                         );
+
+                      const displayServices =
+                        isExternal &&
+                        Array.isArray(
+                          provider.service_types
+                        )
+                          ? provider.service_types
+                          : Array.isArray(
+                              provider.care_types
+                            )
+                          ? provider.care_types
+                          : [];
 
                       return (
                         <article
@@ -929,6 +1042,13 @@ export default function FindCarePage() {
 
                                   <div className="mt-2 flex flex-wrap gap-2">
 
+                                    {isExternal && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                                        <ShieldCheck className="h-3.5 w-3.5" />
+                                        CQC directory
+                                      </span>
+                                    )}
+
                                     {provider.is_verified && (
                                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
                                         <BadgeCheck className="h-3.5 w-3.5" />
@@ -955,43 +1075,45 @@ export default function FindCarePage() {
 
                               </div>
 
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleToggleSaved(
+                              {provider.can_save && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleToggleSaved(
+                                      provider.id
+                                    )
+                                  }
+                                  disabled={
+                                    savingProviderId ===
                                     provider.id
-                                  )
-                                }
-                                disabled={
-                                  savingProviderId ===
-                                  provider.id
-                                }
-                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition ${
-                                  isSaved
-                                    ? "border-rose-200 bg-rose-50 text-rose-600"
-                                    : "border-slate-200 text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                                }`}
-                                title={
-                                  isSaved
-                                    ? "Remove from saved providers"
-                                    : "Save provider"
-                                }
-                              >
+                                  }
+                                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition ${
+                                    isSaved
+                                      ? "border-rose-200 bg-rose-50 text-rose-600"
+                                      : "border-slate-200 text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+                                  }`}
+                                  title={
+                                    isSaved
+                                      ? "Remove from saved providers"
+                                      : "Save provider"
+                                  }
+                                >
 
-                                {savingProviderId ===
-                                provider.id ? (
-                                  <Loader2 className="h-5 w-5 animate-spin" />
-                                ) : (
-                                  <Heart
-                                    className={`h-5 w-5 ${
-                                      isSaved
-                                        ? "fill-current"
-                                        : ""
-                                    }`}
-                                  />
-                                )}
+                                  {savingProviderId ===
+                                  provider.id ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                  ) : (
+                                    <Heart
+                                      className={`h-5 w-5 ${
+                                        isSaved
+                                          ? "fill-current"
+                                          : ""
+                                      }`}
+                                    />
+                                  )}
 
-                              </button>
+                                </button>
+                              )}
 
                             </div>
 
@@ -1046,6 +1168,9 @@ export default function FindCarePage() {
                                     : provider.availability_status ===
                                       "full"
                                     ? "Currently full"
+                                    : provider.availability_status ===
+                                      "unknown"
+                                    ? "Check availability with provider"
                                     : "Not accepting new clients"}
                                 </span>
 
@@ -1053,12 +1178,7 @@ export default function FindCarePage() {
 
                             </div>
 
-                            {Array.isArray(
-                              provider.care_types
-                            ) &&
-                              provider.care_types
-                                .length >
-                                0 && (
+                            {displayServices.length > 0 && (
                                 <div className="mt-5">
 
                                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
@@ -1067,7 +1187,7 @@ export default function FindCarePage() {
 
                                   <div className="mt-3 flex flex-wrap gap-2">
 
-                                    {provider.care_types
+                                    {displayServices
                                       .slice(
                                         0,
                                         4
@@ -1133,13 +1253,25 @@ export default function FindCarePage() {
                                 <div />
                               )}
 
-                              <Link
-                                href={`/providers/${provider.id}`}
-                                className="flex items-center justify-center gap-2 rounded-xl bg-[#0F766E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0D655F]"
-                              >
-                                View provider
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
+                              {isExternal ? (
+                                <a
+                                  href={provider.external_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-center justify-center gap-2 rounded-xl bg-[#0F766E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0D655F]"
+                                >
+                                  View on CQC
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              ) : (
+                                <Link
+                                  href={`/providers/${provider.id}`}
+                                  className="flex items-center justify-center gap-2 rounded-xl bg-[#0F766E] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0D655F]"
+                                >
+                                  View provider
+                                  <ArrowRight className="h-4 w-4" />
+                                </Link>
+                              )}
 
                             </div>
 
@@ -1151,6 +1283,44 @@ export default function FindCarePage() {
                   )}
 
                 </div>
+
+                {totalPages > 1 && (
+                  <div className="mt-8 flex items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPage((current) =>
+                          Math.max(1, current - 1)
+                        )
+                      }
+                      disabled={page <= 1}
+                      className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="text-sm font-semibold text-slate-500">
+                      Page {page} of {totalPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPage((current) =>
+                          Math.min(
+                            totalPages,
+                            current + 1
+                          )
+                        )
+                      }
+                      disabled={page >= totalPages}
+                      className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+                </>
               )}
 
           </section>

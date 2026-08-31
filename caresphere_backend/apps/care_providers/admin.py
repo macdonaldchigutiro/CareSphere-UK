@@ -3,9 +3,11 @@ from django.contrib import admin
 from .models import (
     AvailabilitySlot,
     CareProvider,
+    ExternalProviderLocation,
     ProviderSpecialization,
     StaffMember,
 )
+
 
 @admin.register(CareProvider)
 class CareProviderAdmin(admin.ModelAdmin):
@@ -35,6 +37,63 @@ class CareProviderAdmin(admin.ModelAdmin):
     )
 
     ordering = ("company_name",)
+
+
+@admin.register(ExternalProviderLocation)
+class ExternalProviderLocationAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "postcode",
+        "local_authority",
+        "region",
+        "cqc_location_id",
+        "is_active",
+        "source_published_on",
+        "last_seen_at",
+    )
+    list_filter = (
+        "is_active",
+        "region",
+        "source_published_on",
+    )
+    search_fields = (
+        "name",
+        "also_known_as",
+        "provider_name",
+        "postcode",
+        "local_authority",
+        "cqc_location_id",
+        "cqc_provider_id",
+    )
+    readonly_fields = (
+        "id",
+        "cqc_location_id",
+        "cqc_provider_id",
+        "name",
+        "also_known_as",
+        "provider_name",
+        "address",
+        "postcode",
+        "phone",
+        "website",
+        "service_types",
+        "specialisms",
+        "care_types",
+        "local_authority",
+        "region",
+        "location_url",
+        "latest_check_date",
+        "source_published_on",
+        "content_hash",
+        "search_document",
+        "first_imported_at",
+        "last_seen_at",
+        "updated_at",
+    )
+    ordering = ("name", "postcode")
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(StaffMember)

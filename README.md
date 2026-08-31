@@ -240,6 +240,13 @@ The backend contains a dedicated testing structure for validating application fu
 
 Further automated testing will be introduced as additional modules are completed.
 
+### CQC care directory discovery
+
+CareSphere can import relevant adult social-care locations from the public CQC
+directory and expose them alongside registered CareSphere providers through the
+discovery search. See [CQC directory import](docs/cqc-directory-import.md) for
+the filtering rules, commands and API parameters.
+
 ---
 
 ## 🗺️ Roadmap
