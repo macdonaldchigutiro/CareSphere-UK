@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+
 from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+
         fields = (
             "id",
             "email",
@@ -15,6 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "date_of_birth",
             "is_verified",
+            "is_staff",
+            "is_superuser",
+            "is_active",
             "date_joined",
         )
 
@@ -23,6 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "user_type",
             "is_verified",
+            "is_staff",
+            "is_superuser",
+            "is_active",
             "date_joined",
         )
 
@@ -40,6 +48,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
         fields = (
             "email",
             "first_name",
@@ -67,7 +76,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data["first_name"].strip(),
             last_name=validated_data["last_name"].strip(),
             password=validated_data["password"],
-            user_type=validated_data.get("user_type", "family"),
+            user_type=validated_data.get(
+                "user_type",
+                "family",
+            ),
         )
 
         return user
@@ -75,14 +87,21 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         email = data["email"].lower().strip()
+
         password = data["password"]
 
+        try:
+            account = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email address or password.")
+
         user = authenticate(
-            username=email,
+            username=account.username,
             password=password,
         )
 
