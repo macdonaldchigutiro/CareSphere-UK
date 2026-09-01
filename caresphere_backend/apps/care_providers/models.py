@@ -226,6 +226,12 @@ class ExternalProviderLocation(models.Model):
     location_url = models.URLField(max_length=500)
     latest_check_date = models.DateField(null=True, blank=True)
 
+    # Quality data is enriched separately from CQC's monthly ratings sheet.
+    # The weekly directory CSV does not contain ratings.
+    cqc_rating = models.CharField(max_length=50, blank=True, db_index=True)
+    cqc_rating_date = models.DateField(null=True, blank=True)
+    cqc_rating_inherited = models.BooleanField(null=True, blank=True)
+
     # Import provenance and lifecycle.
     source_published_on = models.DateField(null=True, blank=True)
     content_hash = models.CharField(max_length=64)

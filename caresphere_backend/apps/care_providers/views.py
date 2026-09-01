@@ -32,6 +32,13 @@ from .serializers import (
     ProviderStaffSerializer,
     StaffMemberSerializer,
 )
+from .services.discovery_ranking import (
+    add_match_explanation,
+    external_match_score,
+    internal_match_score,
+    quality_score_expression,
+    result_ordering_key,
+)
 
 
 DISCOVERY_TERM_CORRECTIONS = {
@@ -232,6 +239,10 @@ class ProviderDiscoveryView(APIView):
             request.query_params.get("postcode", "").upper().split()
         )[:12]
         region = " ".join(request.query_params.get("region", "").split())[:150]
+        location = " ".join(
+            request.query_params.get("location", "").split()
+        )[:150]
+        sort = request.query_params.get("sort", "best_match").casefold()
         verification = request.query_params.get("verification", "all").casefold()
         cqc_rating = request.query_params.get("cqc_rating", "all").replace(
             "_", " "
@@ -242,6 +253,12 @@ class ProviderDiscoveryView(APIView):
         if source not in allowed_sources:
             raise ValidationError(
                 {"source": f"Choose one of: {', '.join(sorted(allowed_sources))}."}
+            )
+
+        allowed_sorts = {"best_match", "cqc_rating", "name"}
+        if sort not in allowed_sorts:
+            raise ValidationError(
+                {"sort": f"Choose one of: {', '.join(sorted(allowed_sorts))}."}
             )
 
         allowed_care_types = {
@@ -311,6 +328,20 @@ class ProviderDiscoveryView(APIView):
                 Q(region__icontains=region) | Q(local_authority__icontains=region)
             )
 
+        if location:
+            internal = internal.filter(
+                Q(address_line1__icontains=location)
+                | Q(city__icontains=location)
+                | Q(county__icontains=location)
+                | Q(postcode__istartswith=location)
+            )
+            external = external.filter(
+                Q(address__icontains=location)
+                | Q(local_authority__icontains=location)
+                | Q(region__icontains=location)
+                | Q(postcode__istartswith=location)
+            )
+
         if care_type:
             internal = internal.filter(care_types__icontains=care_type)
             external = external.filter(search_document__icontains=care_type)
@@ -329,8 +360,7 @@ class ProviderDiscoveryView(APIView):
 
         if cqc_rating.casefold() != "all":
             internal = internal.filter(cqc_rating__iexact=cqc_rating)
-            # The weekly CQC directory does not contain ratings.
-            external = external.none()
+            external = external.filter(cqc_rating__iexact=cqc_rating)
 
         if funding != "all":
             funding_field = {
@@ -342,29 +372,78 @@ class ProviderDiscoveryView(APIView):
             # Funding is unknown for directory-only results.
             external = external.none()
 
-        internal = internal.order_by("company_name", "id")
-        external = external.order_by("name", "id")
+        internal = internal.annotate(
+            match_score=internal_match_score(
+                query_terms,
+                care_type=care_type,
+                location=location,
+            ),
+            quality_score=quality_score_expression(),
+        )
+        external = external.annotate(
+            match_score=external_match_score(
+                query_terms,
+                care_type=care_type,
+                location=location,
+            ),
+            quality_score=quality_score_expression(),
+        )
+
+        if sort == "name":
+            internal = internal.order_by("company_name", "id")
+            external = external.order_by("name", "id")
+        elif sort == "cqc_rating":
+            internal = internal.order_by(
+                "-quality_score", "-match_score", "company_name", "id"
+            )
+            external = external.order_by(
+                "-quality_score", "-match_score", "name", "id"
+            )
+        else:
+            internal = internal.order_by("-match_score", "company_name", "id")
+            external = external.order_by("-match_score", "name", "id")
         internal_count = internal.count()
         external_count = external.count()
         total = internal_count + external_count
 
         offset = (page - 1) * page_size
         fetch_limit = offset + page_size
-        combined = [
-            self._internal_result(provider)
-            for provider in internal[:fetch_limit]
-        ]
-        combined.extend(
-            ExternalProviderLocationSerializer(location).data
-            for location in external[:fetch_limit]
-        )
-        combined.sort(
-            key=lambda item: (
-                str(item.get("company_name", "")).casefold(),
-                0 if item.get("source") == "caresphere" else 1,
-                str(item.get("id", "")),
+        combined = []
+        for provider in internal[:fetch_limit]:
+            data = self._internal_result(provider)
+            data.update(
+                {
+                    "match_score": provider.match_score,
+                    "quality_score": provider.quality_score,
+                }
             )
-        )
+            combined.append(
+                add_match_explanation(
+                    data,
+                    query_terms=query_terms,
+                    care_type=care_type,
+                    location=location,
+                )
+            )
+
+        for external_location in external[:fetch_limit]:
+            data = dict(ExternalProviderLocationSerializer(external_location).data)
+            data.update(
+                {
+                    "match_score": external_location.match_score,
+                    "quality_score": external_location.quality_score,
+                }
+            )
+            combined.append(
+                add_match_explanation(
+                    data,
+                    query_terms=query_terms,
+                    care_type=care_type,
+                    location=location,
+                )
+            )
+
+        combined.sort(key=lambda item: result_ordering_key(item, sort))
         results = combined[offset : offset + page_size]
         total_pages = (total + page_size - 1) // page_size if total else 0
 
@@ -379,6 +458,12 @@ class ProviderDiscoveryView(APIView):
                 "query": query,
                 "interpreted_query": " ".join(query_terms),
                 "query_corrections": query_corrections,
+                "location": location,
+                "sort": sort,
+                "ranking": {
+                    "signals": ["care_match", "location_match", "cqc_quality"],
+                    "quality_unknown_is_neutral": True,
+                },
                 "source_counts": {
                     "caresphere": internal_count,
                     "cqc_directory": external_count,

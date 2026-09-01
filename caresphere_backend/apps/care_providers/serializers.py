@@ -90,6 +90,9 @@ class ExternalProviderLocationSerializer(serializers.ModelSerializer):
             "region",
             "cqc_location_id",
             "cqc_provider_id",
+            "cqc_rating",
+            "cqc_rating_date",
+            "cqc_rating_inherited",
             "cqc_report_url",
             "latest_check_date",
             "source_published_on",
@@ -108,8 +111,12 @@ class ExternalProviderLocationSerializer(serializers.ModelSerializer):
                 "verification_badge": "CQC registered",
                 "cqc_verified": True,
                 "cqc_registered": True,
-                "cqc_rating": None,
-                "cqc_status": "CQC registered location",
+                "cqc_rating": instance.cqc_rating or None,
+                "cqc_status": (
+                    f"CQC rated {instance.cqc_rating}"
+                    if instance.cqc_rating
+                    else "CQC registered location - rating not available"
+                ),
                 "availability_status": "unknown",
                 "hourly_rate_min": None,
                 "hourly_rate_max": None,

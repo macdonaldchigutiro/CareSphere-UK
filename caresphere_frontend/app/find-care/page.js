@@ -38,6 +38,7 @@ export default function FindCarePage() {
   const [savedProviders, setSavedProviders] = useState({});
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [locationTerm, setLocationTerm] = useState("");
   const [queryReady, setQueryReady] = useState(false);
   const [queryCorrections, setQueryCorrections] =
     useState([]);
@@ -47,6 +48,7 @@ export default function FindCarePage() {
   const [fundingFilter, setFundingFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [careTypeFilter, setCareTypeFilter] = useState("");
+  const [sortBy, setSortBy] = useState("best_match");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -66,14 +68,21 @@ export default function FindCarePage() {
   // Carry a homepage search into the full discovery experience. Reading the
   // browser URL after mount avoids a server/client hydration mismatch.
   useEffect(() => {
-    const query = new URLSearchParams(
-      window.location.search
-    )
-      .get("q")
-      ?.trim();
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get("q")?.trim();
+    const location = params.get("location")?.trim();
+    const sort = params.get("sort")?.trim();
 
     if (query) {
       setSearchTerm(query);
+    }
+
+    if (location) {
+      setLocationTerm(location);
+    }
+
+    if (["best_match", "cqc_rating", "name"].includes(sort)) {
+      setSortBy(sort);
     }
 
     setQueryReady(true);
@@ -104,6 +113,7 @@ export default function FindCarePage() {
           verification: verificationFilter,
           cqc_rating: cqcFilter,
           funding: fundingFilter,
+          sort: sortBy,
         });
 
         if (searchTerm.trim()) {
@@ -112,6 +122,10 @@ export default function FindCarePage() {
 
         if (careTypeFilter) {
           params.set("care_type", careTypeFilter);
+        }
+
+        if (locationTerm.trim()) {
+          params.set("location", locationTerm.trim());
         }
 
         const response = await fetch(
@@ -190,6 +204,8 @@ export default function FindCarePage() {
     fundingFilter,
     sourceFilter,
     careTypeFilter,
+    locationTerm,
+    sortBy,
     page,
   ]);
 
@@ -202,6 +218,8 @@ export default function FindCarePage() {
     fundingFilter,
     sourceFilter,
     careTypeFilter,
+    locationTerm,
+    sortBy,
   ]);
 
   // ======================================================
@@ -552,11 +570,13 @@ export default function FindCarePage() {
 
   const clearFilters = () => {
     setSearchTerm("");
+    setLocationTerm("");
     setVerificationFilter("all");
     setCqcFilter("all");
     setFundingFilter("all");
     setSourceFilter("all");
     setCareTypeFilter("");
+    setSortBy("best_match");
     setPage(1);
   };
 
@@ -640,7 +660,7 @@ export default function FindCarePage() {
 
           </div>
 
-          <div className="mt-9 max-w-3xl">
+          <div className="mt-9 grid max-w-4xl gap-3 md:grid-cols-2">
 
             <div className="relative">
 
@@ -654,7 +674,25 @@ export default function FindCarePage() {
                     event.target.value
                   )
                 }
-                placeholder="Search provider, city, postcode or care type..."
+                placeholder="Care need, specialism or provider name..."
+                className="w-full rounded-2xl border border-white/10 bg-white py-4 pl-14 pr-5 text-slate-800 outline-none transition focus:ring-4 focus:ring-teal-500/20"
+              />
+
+            </div>
+
+            <div className="relative">
+
+              <MapPin className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+
+              <input
+                type="text"
+                value={locationTerm}
+                onChange={(event) =>
+                  setLocationTerm(
+                    event.target.value
+                  )
+                }
+                placeholder="Town, county or postcode"
                 className="w-full rounded-2xl border border-white/10 bg-white py-4 pl-14 pr-5 text-slate-800 outline-none transition focus:ring-4 focus:ring-teal-500/20"
               />
 
@@ -732,6 +770,34 @@ export default function FindCarePage() {
 
                   <option value="cqc_directory">
                     CQC directory
+                  </option>
+                </select>
+
+              </div>
+
+              <div className="mt-5">
+
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Sort results
+                </label>
+
+                <select
+                  value={sortBy}
+                  onChange={(event) =>
+                    setSortBy(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#0F766E]"
+                >
+                  <option value="best_match">
+                    Best match
+                  </option>
+
+                  <option value="cqc_rating">
+                    CQC rating
+                  </option>
+
+                  <option value="name">
+                    Provider name
                   </option>
                 </select>
 
@@ -955,6 +1021,17 @@ export default function FindCarePage() {
                     {sourceCounts.cqc_directory} CQC directory
                   </span>
                 </div>
+
+                {sortBy === "best_match" && (
+                  <div className="mt-4 rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-950">
+                    <span className="font-bold">
+                      How best match works:
+                    </span>{" "}
+                    care needs come first, followed by location, available CQC
+                    quality information and trusted registration. A provider is
+                    not marked down when no CQC rating is available.
+                  </div>
+                )}
 
                 {sourceCounts.cqc_directory > 0 && (
                   <p className="mt-3 text-xs leading-5 text-slate-500">
@@ -1219,6 +1296,31 @@ export default function FindCarePage() {
                               </div>
 
                             </div>
+
+                            {Array.isArray(provider.match_reasons) &&
+                              provider.match_reasons.length > 0 && (
+                                <div className="mt-5">
+
+                                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                                    Why this matches
+                                  </p>
+
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {provider.match_reasons
+                                      .slice(0, 4)
+                                      .map((reason) => (
+                                        <span
+                                          key={reason}
+                                          className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-800"
+                                        >
+                                          <CheckCircle2 className="h-3.5 w-3.5" />
+                                          {reason}
+                                        </span>
+                                      ))}
+                                  </div>
+
+                                </div>
+                              )}
 
                             {displayServices.length > 0 && (
                                 <div className="mt-5">

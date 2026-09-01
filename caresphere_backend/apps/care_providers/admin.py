@@ -47,12 +47,14 @@ class ExternalProviderLocationAdmin(admin.ModelAdmin):
         "local_authority",
         "region",
         "cqc_location_id",
+        "cqc_rating",
         "is_active",
         "source_published_on",
         "last_seen_at",
     )
     list_filter = (
         "is_active",
+        "cqc_rating",
         "region",
         "source_published_on",
     )
@@ -69,6 +71,9 @@ class ExternalProviderLocationAdmin(admin.ModelAdmin):
         "id",
         "cqc_location_id",
         "cqc_provider_id",
+        "cqc_rating",
+        "cqc_rating_date",
+        "cqc_rating_inherited",
         "name",
         "also_known_as",
         "provider_name",

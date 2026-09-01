@@ -239,6 +239,7 @@ export default function Home() {
   const [distance, setDistance] = useState(25);
   const [budget, setBudget] = useState(500);
   const [searchTerm, setSearchTerm] = useState("");
+  const [locationTerm, setLocationTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ======================================================
@@ -292,8 +293,19 @@ export default function Home() {
   const handleMatch = () => {
     setIsLoading(true);
     const query = searchTerm.trim();
-    const destination = query
-      ? `/find-care?q=${encodeURIComponent(query)}`
+    const location = locationTerm.trim();
+    const params = new URLSearchParams();
+
+    if (query) {
+      params.set("q", query);
+    }
+
+    if (location) {
+      params.set("location", location);
+    }
+
+    const destination = params.toString()
+      ? `/find-care?${params.toString()}`
       : "/find-care";
 
     router.push(destination);
@@ -602,6 +614,26 @@ export default function Home() {
                 />
               </div>
 
+              <div className="relative mt-3">
+                <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+
+                <input
+                  type="text"
+                  value={locationTerm}
+                  onChange={(event) =>
+                    setLocationTerm(event.target.value)
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleMatch();
+                    }
+                  }}
+                  placeholder="Town, county or postcode"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm outline-none transition focus:border-[#0F766E] focus:bg-white focus:ring-4 focus:ring-teal-100"
+                />
+              </div>
+
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -616,28 +648,28 @@ export default function Home() {
               <div className="mt-6 grid grid-cols-3 divide-x divide-slate-200 border-t border-slate-100 pt-6 text-center">
                 <div>
                   <div className="text-xl font-black text-slate-950">
-                    500+
+                    30K+
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
-                    Providers
+                    Care locations
                   </div>
                 </div>
 
                 <div>
                   <div className="text-xl font-black text-slate-950">
-                    98%
+                    3-way
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
-                    Match accuracy
+                    Match ranking
                   </div>
                 </div>
 
                 <div>
                   <div className="text-xl font-black text-slate-950">
-                    24/7
+                    CQC
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
-                    Support
+                    Quality data
                   </div>
                 </div>
               </div>
@@ -764,6 +796,25 @@ export default function Home() {
 
               <div className="mt-6 border-t border-slate-100 pt-6">
                 <div className="mb-6">
+                  <label className="mb-3 block text-sm font-bold text-slate-800">
+                    Location or postcode
+                  </label>
+
+                  <div className="relative">
+                    <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={locationTerm}
+                      onChange={(event) =>
+                        setLocationTerm(event.target.value)
+                      }
+                      placeholder="For example Watford or WD17"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-[#0F766E] focus:bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-6">
                   <div className="mb-3 flex items-center justify-between">
                     <label className="text-sm font-bold text-slate-800">
                       Distance
@@ -841,7 +892,7 @@ export default function Home() {
                       handleMatch();
                     }
                   }}
-                  placeholder="Search by care type, provider, city or specialism..."
+                  placeholder="Search by care type, provider or specialism..."
                   className="w-full rounded-2xl bg-slate-50 py-4 pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:bg-white focus:ring-2 focus:ring-[#0F766E]/30"
                 />
               </div>
