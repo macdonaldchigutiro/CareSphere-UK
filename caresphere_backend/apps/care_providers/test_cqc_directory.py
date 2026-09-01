@@ -225,14 +225,15 @@ class ProviderDiscoveryTests(TestCase):
             postcode="WD17 3CC",
             phone="01923 222222",
             service_types=["Supported living"],
-            specialisms=["Caring for adults under 65 yrs"],
+            specialisms=["Caring for adults under 65 yrs", "Dementia"],
             care_types=["specialist"],
             local_authority="Hertfordshire",
             region="East of England",
             location_url="https://www.cqc.org.uk/location/1-EXT",
             content_hash="a" * 64,
             search_document=(
-                "independent watford support supported living specialist wd17 3cc"
+                "independent watford support supported living specialist "
+                "dementia wd17 3cc"
             ),
             last_seen_at=timezone.now(),
         )
@@ -280,6 +281,38 @@ class ProviderDiscoveryTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["source"], "caresphere")
+
+    def test_discovery_ignores_generic_words_in_a_natural_language_search(self):
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"q": "dementia care", "page_size": 10},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["interpreted_query"], "dementia")
+        self.assertEqual(
+            {item["source"] for item in response.data["results"]},
+            {"caresphere", "cqc_directory"},
+        )
+
+    def test_discovery_corrects_a_common_dementia_misspelling(self):
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"q": "dimentia care", "page_size": 10},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["interpreted_query"], "dementia")
+        self.assertEqual(
+            response.data["query_corrections"],
+            [{"from": "dimentia", "to": "dementia"}],
+        )
+        self.assertEqual(
+            {item["source"] for item in response.data["results"]},
+            {"caresphere", "cqc_directory"},
+        )
 
     def test_inactive_directory_rows_are_not_discoverable(self):
         self.external.is_active = False

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
@@ -232,6 +233,7 @@ function ProviderCard({ provider }) {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState("quality");
   const [distance, setDistance] = useState(25);
@@ -289,10 +291,12 @@ export default function Home() {
 
   const handleMatch = () => {
     setIsLoading(true);
+    const query = searchTerm.trim();
+    const destination = query
+      ? `/find-care?q=${encodeURIComponent(query)}`
+      : "/find-care";
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
+    router.push(destination);
   };
 
   const filteredProviders = useMemo(() => {
@@ -587,6 +591,12 @@ export default function Home() {
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleMatch();
+                    }
+                  }}
                   placeholder="Dementia care, live-in care, respite..."
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm outline-none transition focus:border-[#0F766E] focus:bg-white focus:ring-4 focus:ring-teal-100"
                 />
@@ -825,6 +835,12 @@ export default function Home() {
                   onChange={(event) =>
                     setSearchTerm(event.target.value)
                   }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleMatch();
+                    }
+                  }}
                   placeholder="Search by care type, provider, city or specialism..."
                   className="w-full rounded-2xl bg-slate-50 py-4 pl-12 pr-4 text-sm text-slate-700 outline-none transition focus:bg-white focus:ring-2 focus:ring-[#0F766E]/30"
                 />

@@ -1,3 +1,5 @@
+import re
+
 from django.db.models import Q
 from django_filters.rest_framework import (
     DjangoFilterBackend,
@@ -30,6 +32,54 @@ from .serializers import (
     ProviderStaffSerializer,
     StaffMemberSerializer,
 )
+
+
+DISCOVERY_TERM_CORRECTIONS = {
+    "demenita": "dementia",
+    "demensia": "dementia",
+    "dimentia": "dementia",
+    "domicillary": "domiciliary",
+    "paliative": "palliative",
+    "residental": "residential",
+}
+
+DISCOVERY_STOP_WORDS = frozenset(
+    {
+        "care",
+        "find",
+        "for",
+        "me",
+        "near",
+        "need",
+        "needed",
+        "provider",
+        "providers",
+        "service",
+        "services",
+        "with",
+    }
+)
+
+
+def normalise_discovery_query(query):
+    """Return useful search terms and transparent spelling corrections."""
+
+    raw_terms = re.findall(r"[a-z0-9]+", query.casefold())
+    corrected_terms = []
+    corrections = []
+
+    for term in raw_terms:
+        corrected = DISCOVERY_TERM_CORRECTIONS.get(term, term)
+        if corrected != term:
+            corrections.append({"from": term, "to": corrected})
+        if corrected not in corrected_terms:
+            corrected_terms.append(corrected)
+
+    meaningful_terms = [
+        term for term in corrected_terms if term not in DISCOVERY_STOP_WORDS
+    ]
+    return meaningful_terms or corrected_terms, corrections
+
 
 # ======================================================
 # PROVIDER ACCESS HELPERS
@@ -175,6 +225,7 @@ class ProviderDiscoveryView(APIView):
         )
 
         query = " ".join(request.query_params.get("q", "").split())[:150]
+        query_terms, query_corrections = normalise_discovery_query(query)
         source = request.query_params.get("source", "all").casefold()
         care_type = request.query_params.get("care_type", "").casefold()
         postcode = " ".join(
@@ -235,7 +286,7 @@ class ProviderDiscoveryView(APIView):
         elif source == "cqc_directory":
             internal = internal.none()
 
-        for term in query.split():
+        for term in query_terms:
             internal = internal.filter(
                 Q(company_name__icontains=term)
                 | Q(trading_name__icontains=term)
@@ -325,6 +376,9 @@ class ProviderDiscoveryView(APIView):
                 "total_pages": total_pages,
                 "next": page + 1 if page < total_pages else None,
                 "previous": page - 1 if page > 1 and total_pages else None,
+                "query": query,
+                "interpreted_query": " ".join(query_terms),
+                "query_corrections": query_corrections,
                 "source_counts": {
                     "caresphere": internal_count,
                     "cqc_directory": external_count,

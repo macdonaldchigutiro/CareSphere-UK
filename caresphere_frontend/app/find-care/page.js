@@ -38,6 +38,9 @@ export default function FindCarePage() {
   const [savedProviders, setSavedProviders] = useState({});
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [queryReady, setQueryReady] = useState(false);
+  const [queryCorrections, setQueryCorrections] =
+    useState([]);
   const [verificationFilter, setVerificationFilter] =
     useState("all");
   const [cqcFilter, setCqcFilter] = useState("all");
@@ -60,6 +63,22 @@ export default function FindCarePage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  // Carry a homepage search into the full discovery experience. Reading the
+  // browser URL after mount avoids a server/client hydration mismatch.
+  useEffect(() => {
+    const query = new URLSearchParams(
+      window.location.search
+    )
+      .get("q")
+      ?.trim();
+
+    if (query) {
+      setSearchTerm(query);
+    }
+
+    setQueryReady(true);
+  }, []);
+
   // ======================================================
   // LOAD DISCOVERY RESULTS
   // Public endpoint - login not required. Search and filters run on the
@@ -67,6 +86,10 @@ export default function FindCarePage() {
   // ======================================================
 
   useEffect(() => {
+    if (!queryReady) {
+      return undefined;
+    }
+
     const controller = new AbortController();
 
     const loadProviders = async () => {
@@ -117,6 +140,11 @@ export default function FindCarePage() {
           cqc_directory:
             Number(data.source_counts?.cqc_directory) || 0,
         });
+        setQueryCorrections(
+          Array.isArray(data.query_corrections)
+            ? data.query_corrections
+            : []
+        );
       } catch (err) {
         if (err.name === "AbortError") {
           return;
@@ -137,6 +165,7 @@ export default function FindCarePage() {
           caresphere: 0,
           cqc_directory: 0,
         });
+        setQueryCorrections([]);
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -154,6 +183,7 @@ export default function FindCarePage() {
       controller.abort();
     };
   }, [
+    queryReady,
     searchTerm,
     verificationFilter,
     cqcFilter,
@@ -901,6 +931,18 @@ export default function FindCarePage() {
               )}
 
             </div>
+
+            {!loading && queryCorrections.length > 0 && (
+              <div className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+                Showing matches for{" "}
+                <span className="font-bold">
+                  {queryCorrections
+                    .map((correction) => correction.to)
+                    .join(", ")}
+                </span>
+                .
+              </div>
+            )}
 
             {!loading && resultCount > 0 && (
               <div className="mb-6">
