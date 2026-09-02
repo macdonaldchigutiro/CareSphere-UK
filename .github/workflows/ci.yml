@@ -48,12 +48,8 @@ jobs:
           python manage.py shell -c
           "from django.test import Client; response=Client(HTTP_HOST='localhost').get('/api/health/');
           assert response.status_code == 200 and response.json() == {'status': 'ok'}"
-      - name: Run CQC discovery tests
-        run: >-
-          python manage.py test
-          apps.bookings.tests
-          apps.care_providers.test_cqc_directory
-          apps.care_providers.test_postcode_geo
+      - name: Run complete backend test suite
+        run: python manage.py test
 
   frontend:
     name: Frontend checks

@@ -159,3 +159,63 @@ class ThreeRoleCareJourneyTests(APITestCase):
         booking = Booking.objects.get(pk=booking_id)
         self.assertEqual(booking.status, Booking.Status.CONFIRMED)
         self.assertEqual(booking.assigned_staff, self.staff)
+
+    def test_booking_lists_and_provider_actions_are_isolated_by_role(self):
+        other_provider_user = User.objects.create_user(
+            username="other-provider-journey@example.com",
+            email="other-provider-journey@example.com",
+            password="test-password",
+            user_type="provider",
+        )
+        other_provider = CareProvider.objects.create(
+            user=other_provider_user,
+            company_name="Other Journey Care Ltd",
+            business_type=CareProvider.BusinessType.AGENCY,
+            care_types=[CareProvider.CareType.DOMICILIARY],
+            address_line1="2 Test Street",
+            city="Watford",
+            postcode="WD17 1NA",
+            county="Hertfordshire",
+            phone="01923000001",
+            email=other_provider_user.email,
+        )
+        other_family = User.objects.create_user(
+            username="other-family-journey@example.com",
+            email="other-family-journey@example.com",
+            password="test-password",
+            user_type="family",
+        )
+        booking = Booking.objects.create(
+            user=self.family_user,
+            provider=self.provider,
+            service_user=self.care_recipient,
+            care_type="Dementia care",
+            frequency=Booking.Frequency.WEEKLY,
+            start_time=self.start_at,
+            end_time=self.end_at,
+            status=Booking.Status.PENDING,
+        )
+        Booking.objects.create(
+            user=other_family,
+            provider=other_provider,
+            care_recipient_name="Other Recipient",
+            care_type="Personal care",
+            frequency=Booking.Frequency.ONE_OFF,
+            start_time=self.start_at,
+            end_time=self.end_at,
+            status=Booking.Status.PENDING,
+        )
+
+        self.client.force_authenticate(self.family_user)
+        family_list = self.client.get("/api/bookings/")
+        self.assertEqual(family_list.data["count"], 1)
+
+        self.client.force_authenticate(other_provider_user)
+        provider_list = self.client.get("/api/bookings/")
+        self.assertEqual(provider_list.data["count"], 1)
+        forbidden = self.client.post(f"/api/bookings/{booking.id}/accept/")
+        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(self.admin)
+        admin_list = self.client.get("/api/bookings/")
+        self.assertEqual(admin_list.data["count"], 2)

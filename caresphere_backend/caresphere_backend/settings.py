@@ -80,6 +80,8 @@ INSTALLED_APPS = [
     "apps.pricing",
 ]
 
+TEST_RUNNER = "caresphere_backend.test_runner.CareSphereTestRunner"
+
 
 # ======================================================
 # MIDDLEWARE

@@ -20,7 +20,7 @@ Run these commands from the repository root before deployment:
 cd caresphere_backend
 python manage.py check
 python manage.py makemigrations --check --dry-run
-python manage.py test apps.care_providers.test_cqc_directory apps.care_providers.test_postcode_geo
+python manage.py test
 
 cd ../caresphere_frontend
 npm ci
