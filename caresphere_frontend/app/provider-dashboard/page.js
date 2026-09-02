@@ -1277,9 +1277,6 @@ export default function ProviderDashboardPage() {
 
       <header
         className="
-          sticky
-          top-0
-          z-40
           border-b
           border-slate-200
           bg-white/95
