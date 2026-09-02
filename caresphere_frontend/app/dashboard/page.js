@@ -23,6 +23,7 @@ import {
   authFetch,
   clearAuthSession,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
   getStoredUser,
   updateStoredUser,
@@ -121,6 +122,14 @@ export default function DashboardPage() {
         updateStoredUser(
           profileData
         );
+
+        const roleHome =
+          getDashboardPath(profileData);
+
+        if (roleHome !== "/dashboard") {
+          router.replace(roleHome);
+          return;
+        }
 
         // ==================================================
         // SAVED PROVIDERS
@@ -528,7 +537,7 @@ export default function DashboardPage() {
       text:
         "Update when your care team is available.",
       icon: CalendarDays,
-      href: null,
+      href: "/provider-availability",
     },
     {
       title:
@@ -544,7 +553,7 @@ export default function DashboardPage() {
       text:
         "Manage your verification information and documents.",
       icon: ShieldCheck,
-      href: null,
+      href: "/provider-profile",
     },
   ];
 

@@ -19,6 +19,7 @@ import {
 import {
   authFetch,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
   updateStoredUser,
 } from "../../lib/auth";
@@ -44,6 +45,9 @@ export default function ProfilePage() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const dashboardPath =
+    getDashboardPath(profile);
 
   // ======================================================
   // LOGIN REDIRECT
@@ -378,7 +382,7 @@ export default function ProfilePage() {
           </Link>
 
           <Link
-            href="/dashboard"
+            href={dashboardPath}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
           >
             <ArrowLeft className="h-4 w-4" />

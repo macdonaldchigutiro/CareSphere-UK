@@ -31,6 +31,7 @@ import {
 import {
   authFetch,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
   getStoredUser,
 } from "../../lib/auth";
@@ -83,6 +84,9 @@ export default function BookingsPage() {
   const isProvider =
     user?.user_type ===
     "provider";
+
+  const dashboardPath =
+    getDashboardPath(user);
 
 
   // ======================================================
@@ -676,7 +680,7 @@ export default function BookingsPage() {
           </Link>
 
           <Link
-            href="/dashboard"
+            href={dashboardPath}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
           >
 

@@ -26,6 +26,7 @@ import {
   isFullUkPostcode,
   normalisePostcode,
 } from "../lib/postcode";
+import { getDashboardPath } from "../lib/auth";
 
 const matchStrategies = [
   {
@@ -291,6 +292,9 @@ export default function Home() {
     user?.email?.split("@")[0] ||
     "User";
 
+  const dashboardPath =
+    getDashboardPath(user);
+
   // ======================================================
   // MATCHING
   // ======================================================
@@ -408,7 +412,7 @@ export default function Home() {
                   </span>
 
                   <Link
-                    href="/dashboard"
+                    href={dashboardPath}
                     className="rounded-xl bg-[#0F766E] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[#0D655F]"
                   >
                     My Dashboard
@@ -501,7 +505,7 @@ export default function Home() {
                       </p>
 
                       <Link
-                        href="/dashboard"
+                        href={dashboardPath}
                         onClick={() => setMobileMenuOpen(false)}
                         className="block rounded-xl bg-[#0F766E] px-4 py-3 text-center text-sm font-bold text-white"
                       >

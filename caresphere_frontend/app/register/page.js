@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { API_URL } from "../../lib/config";
+import { getDashboardPath } from "../../lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -122,7 +123,9 @@ export default function RegisterPage() {
       setSuccess("Account created successfully.");
 
       setTimeout(() => {
-        router.push("/");
+        router.push(
+          getDashboardPath(data.user)
+        );
       }, 800);
     } catch (err) {
       console.error("Registration error:", err);

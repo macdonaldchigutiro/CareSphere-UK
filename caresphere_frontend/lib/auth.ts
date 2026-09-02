@@ -13,6 +13,8 @@ export type CareSphereUser = {
   phone_number?: string;
   date_of_birth?: string;
   is_verified?: boolean;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 };
 
 type SaveAuthSessionParams = {
@@ -201,6 +203,28 @@ export function updateStoredUser(
     "caresphere_user",
     JSON.stringify(user)
   );
+}
+
+// ======================================================
+// ROLE HOME
+// ======================================================
+
+export function getDashboardPath(
+  user?: CareSphereUser | null
+): string {
+  if (
+    user?.is_staff ||
+    user?.is_superuser ||
+    user?.user_type === "admin"
+  ) {
+    return "/admin-dashboard";
+  }
+
+  if (user?.user_type === "provider") {
+    return "/provider-dashboard";
+  }
+
+  return "/dashboard";
 }
 
 // ======================================================

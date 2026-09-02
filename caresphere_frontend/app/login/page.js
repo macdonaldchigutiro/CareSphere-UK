@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import {
+  getDashboardPath,
   saveAuthSession,
 } from "../../lib/auth";
 import { API_URL } from "../../lib/config";
@@ -148,7 +149,11 @@ function LoginContent() {
         persistent: keepSignedIn,
       });
 
-      router.replace(safeNext);
+      const destination = requestedNext
+        ? safeNext
+        : getDashboardPath(data.user);
+
+      router.replace(destination);
     } catch (err) {
       console.error(
         "Login error:",

@@ -1,9 +1,13 @@
 import './globals.css'
+import WorkspaceNavigation from '../components/WorkspaceNavigation'
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <WorkspaceNavigation />
+        {children}
+      </body>
     </html>
   )
 }

@@ -293,6 +293,27 @@ export function updateStoredUser(
 
 
 // ======================================================
+// ROLE HOME
+// ======================================================
+
+export function getDashboardPath(user) {
+  if (
+    user?.is_staff ||
+    user?.is_superuser ||
+    user?.user_type === "admin"
+  ) {
+    return "/admin-dashboard";
+  }
+
+  if (user?.user_type === "provider") {
+    return "/provider-dashboard";
+  }
+
+  return "/dashboard";
+}
+
+
+// ======================================================
 // LOGIN URL
 // ======================================================
 
