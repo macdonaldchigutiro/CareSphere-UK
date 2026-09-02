@@ -51,6 +51,7 @@ jobs:
       - name: Run CQC discovery tests
         run: >-
           python manage.py test
+          apps.bookings.tests
           apps.care_providers.test_cqc_directory
           apps.care_providers.test_postcode_geo
 

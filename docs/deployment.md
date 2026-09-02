@@ -31,6 +31,19 @@ npm run build
 
 GitHub Actions runs the same checks on every pull request and push to `main`.
 
+## Local three-role demonstration
+
+Create or reset a safe local demonstration journey while `DEBUG=True`:
+
+```bash
+cd caresphere_backend
+python manage.py seed_demo_journey
+```
+
+The command prints a generated password and the three account email addresses. It creates an administrator, a care-company account, a client/family account, one fictional care recipient, one fictional staff member and one pending care request. Sign in as each account in turn to demonstrate the client → care company → administrator journey.
+
+The command resets only its clearly labelled demonstration records. Never enter real personal or care data into the demo.
+
 ## Deploy
 
 From the repository root:
