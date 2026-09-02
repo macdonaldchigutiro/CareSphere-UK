@@ -27,6 +27,7 @@ import {
   authFetch,
   clearAuthSession,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
   getStoredUser,
 } from "../../lib/auth";
@@ -180,17 +181,8 @@ export default function ProviderDashboardPage() {
         // PROVIDER ACCOUNT CHECK
         // ----------------------------------------------
 
-        if (
-          profileData.user_type !==
-            "provider" &&
-          !profileData.is_staff &&
-          !profileData.is_superuser
-        ) {
-          setError(
-            "This dashboard is only available to care provider accounts."
-          );
-
-          setBookings([]);
+        if (profileData.user_type !== "provider") {
+          router.replace(getDashboardPath(profileData));
           return;
         }
 

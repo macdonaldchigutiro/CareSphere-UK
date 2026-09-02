@@ -23,6 +23,7 @@ import {
 import {
   authFetch,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
 } from "../../lib/auth";
 import { API_URL } from "../../lib/config";
@@ -405,12 +406,8 @@ export default function ProviderProfilePage() {
         const userProfile =
           await profileResponse.json();
 
-        if (
-          userProfile.user_type !== "provider" &&
-          !userProfile.is_staff &&
-          !userProfile.is_superuser
-        ) {
-          router.replace("/dashboard");
+        if (userProfile.user_type !== "provider") {
+          router.replace(getDashboardPath(userProfile));
           return;
         }
 

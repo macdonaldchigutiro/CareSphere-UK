@@ -22,6 +22,7 @@ import {
 import {
   authFetch,
   createLoginUrl,
+  getDashboardPath,
   getAuthStorage,
 } from "../../lib/auth";
 import { API_URL } from "../../lib/config";
@@ -623,15 +624,8 @@ export default function ProviderAvailabilityPage() {
       const profile =
         await profileResponse.json();
 
-      if (
-        profile.user_type !==
-          "provider" &&
-        !profile.is_staff &&
-        !profile.is_superuser
-      ) {
-        router.replace(
-          "/dashboard"
-        );
+      if (profile.user_type !== "provider") {
+        router.replace(getDashboardPath(profile));
         return;
       }
 
