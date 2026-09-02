@@ -1,10 +1,9 @@
+import { API_URL } from "./config";
+
 const ACCESS_KEY = "caresphere_access";
 const REFRESH_KEY = "caresphere_refresh";
 const USER_KEY = "caresphere_user";
 const STORAGE_KEY = "caresphere_storage";
-
-const API_URL = "http://127.0.0.1:8000";
-
 
 // ======================================================
 // STORAGE HELPERS

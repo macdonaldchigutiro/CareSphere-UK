@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { authFetch } from "../../../lib/auth";
+import { API_URL } from "../../../lib/config";
 
 
 export default function AdminReviewsPage() {
@@ -32,7 +33,7 @@ export default function AdminReviewsPage() {
       setError("");
 
       const response = await authFetch(
-        "http://127.0.0.1:8000/api/users/admin/governance/"
+        `${API_URL}/api/users/admin/governance/`
       );
 
       if (!response.ok) {
@@ -98,7 +99,7 @@ export default function AdminReviewsPage() {
       setActionMessage("");
 
       const response = await authFetch(
-        `http://127.0.0.1:8000/api/users/admin/actions/reviews/${review.id}/`,
+        `${API_URL}/api/users/admin/actions/reviews/${review.id}/`,
         {
           method: "POST",
           headers: {
@@ -151,7 +152,7 @@ export default function AdminReviewsPage() {
       setActionMessage("");
 
       const response = await authFetch(
-        `http://127.0.0.1:8000/api/users/admin/actions/reviews/${review.id}/`,
+        `${API_URL}/api/users/admin/actions/reviews/${review.id}/`,
         {
           method: "POST",
           headers: {

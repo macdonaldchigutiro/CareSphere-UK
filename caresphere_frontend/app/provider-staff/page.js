@@ -26,9 +26,7 @@ import {
   createLoginUrl,
   getAuthStorage,
 } from "../../lib/auth";
-
-
-const API_URL = "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 
 const ROLE_OPTIONS = [
@@ -1047,7 +1045,7 @@ export default function ProviderStaffPage() {
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Enter the staff member's employment and care information.
+                  Enter the staff member&apos;s employment and care information.
                 </p>
               </div>
 

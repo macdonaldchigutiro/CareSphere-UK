@@ -25,6 +25,7 @@ import {
 import {
   saveAuthSession,
 } from "../../lib/auth";
+import { API_URL } from "../../lib/config";
 
 // ======================================================
 // LOGIN CONTENT
@@ -97,7 +98,7 @@ function LoginContent() {
       setIsSubmitting(true);
 
       const response = await fetch(
-        "http://127.0.0.1:8000/api/users/login/",
+        `${API_URL}/api/users/login/`,
         {
           method: "POST",
 

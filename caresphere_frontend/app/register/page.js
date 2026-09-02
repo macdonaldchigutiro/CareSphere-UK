@@ -14,6 +14,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import { API_URL } from "../../lib/config";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function RegisterPage() {
       setIsSubmitting(true);
 
       const response = await fetch(
-        "http://127.0.0.1:8000/api/users/register/",
+        `${API_URL}/api/users/register/`,
         {
           method: "POST",
           headers: {

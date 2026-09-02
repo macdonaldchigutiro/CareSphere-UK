@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { authFetch } from "../../../lib/auth";
+import { API_URL } from "../../../lib/config";
 
 
 export default function AdminCommunicationsPage() {
@@ -30,7 +31,7 @@ export default function AdminCommunicationsPage() {
       setError("");
 
       const response = await authFetch(
-        "http://127.0.0.1:8000/api/users/admin/governance/"
+        `${API_URL}/api/users/admin/governance/`
       );
 
       if (!response.ok) {
@@ -70,7 +71,7 @@ export default function AdminCommunicationsPage() {
       setActionError("");
 
       const response = await authFetch(
-        `http://127.0.0.1:8000/api/users/admin/actions/communications/${thread.id}/`,
+        `${API_URL}/api/users/admin/actions/communications/${thread.id}/`,
         {
           method: "POST",
           headers: {

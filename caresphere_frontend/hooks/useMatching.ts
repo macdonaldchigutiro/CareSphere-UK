@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import axios from 'axios'
 import api from '@/lib/api'
 
 interface MatchingFilters {
@@ -40,8 +41,10 @@ export function useMatching() {
       const response = await api.post('/matching/match/', filters)
       setMatches(response.data)
       return { success: true, data: response.data }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to find matches'
+    } catch (err: unknown) {
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Failed to find matches'
+        : 'Failed to find matches'
       setError(errorMessage)
       setMatches([])
       return { success: false, error: errorMessage }
@@ -54,10 +57,12 @@ export function useMatching() {
     try {
       const response = await api.get(`/providers/${providerId}/`)
       return { success: true, data: response.data }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return { 
         success: false, 
-        error: err.response?.data || 'Failed to fetch provider details' 
+        error: axios.isAxiosError(err)
+          ? err.response?.data || 'Failed to fetch provider details'
+          : 'Failed to fetch provider details'
       }
     }
   }, [])
@@ -70,10 +75,12 @@ export function useMatching() {
         saved_at: new Date().toISOString(),
       })
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return { 
         success: false, 
-        error: err.response?.data || 'Failed to save match' 
+        error: axios.isAxiosError(err)
+          ? err.response?.data || 'Failed to save match'
+          : 'Failed to save match'
       }
     }
   }, [])
@@ -82,10 +89,12 @@ export function useMatching() {
     try {
       const response = await api.get('/matching/saved/')
       return { success: true, data: response.data }
-    } catch (err: any) {
+    } catch (err: unknown) {
       return { 
         success: false, 
-        error: err.response?.data || 'Failed to fetch saved matches' 
+        error: axios.isAxiosError(err)
+          ? err.response?.data || 'Failed to fetch saved matches'
+          : 'Failed to fetch saved matches'
       }
     }
   }, [])
@@ -102,8 +111,10 @@ export function useMatching() {
       })
       setMatches(response.data)
       return { success: true, data: response.data }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Emergency matching failed'
+    } catch (err: unknown) {
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Emergency matching failed'
+        : 'Emergency matching failed'
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {

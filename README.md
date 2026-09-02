@@ -197,6 +197,8 @@ The infrastructure directory also contains configuration for services such as:
 * Prometheus
 * Grafana
 
+For the production environment, security settings, validation commands and rollback steps, follow [the production deployment guide](docs/deployment.md).
+
 ---
 
 ## 🔐 Environment Variables

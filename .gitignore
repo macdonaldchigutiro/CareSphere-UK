@@ -10,6 +10,7 @@
 # =====================
 node_modules/
 .next/
+*.tsbuildinfo
 out/
 dist/
 npm-debug.log*
@@ -23,6 +24,8 @@ __pycache__/
 *.py[cod]
 *.sqlite3
 db.sqlite3
+staticfiles/
+media/
 
 venv/
 .venv/

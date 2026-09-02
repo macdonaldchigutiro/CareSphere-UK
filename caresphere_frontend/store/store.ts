@@ -12,7 +12,7 @@ interface AppState {
   // Matching
   providers: Provider[];
   selectedProvider: Provider | null;
-  matchingFilters: any;
+  matchingFilters: Record<string, unknown>;
   
   // Booking
   bookings: Booking[];
@@ -51,10 +51,10 @@ export const useStore = create<AppState>()(
       error: null,
       
       // Actions
-      setUser: (user) => set((state) => ({ 
+      setUser: (user) => set({
         user, 
         isAuthenticated: !!user 
-      })),
+      }),
       setToken: (token) => set({ token }),
       setProviders: (providers) => set({ providers }),
       setSelectedProvider: (provider) => set({ selectedProvider: provider }),
@@ -86,26 +86,30 @@ export const useStore = create<AppState>()(
   )
 );
 
-// Create slice-specific stores
-export const createMatchingSlice = (set: any, get: any) => ({
-  providers: [],
-  selectedProvider: null,
-  matchingFilters: {},
-  confidenceScore: 0,
-  
-  setMatchingFilters: (filters: any) => set({ matchingFilters: filters }),
-  updateConfidenceScore: (score: number) => set({ confidenceScore: score }),
-  resetMatching: () => set({ 
-    providers: [], 
-    selectedProvider: null,
-    confidenceScore: 0 
-  }),
-});
+interface MatchingStoreState {
+  providers: Provider[];
+  selectedProvider: Provider | null;
+  matchingFilters: Record<string, unknown>;
+  confidenceScore: number;
+  setMatchingFilters: (filters: Record<string, unknown>) => void;
+  updateConfidenceScore: (score: number) => void;
+  resetMatching: () => void;
+}
 
-export const useMatchingStore = create(
+export const useMatchingStore = create<MatchingStoreState>()(
   persist(
-    (set, get) => ({
-      ...createMatchingSlice(set, get),
+    (set) => ({
+      providers: [],
+      selectedProvider: null,
+      matchingFilters: {},
+      confidenceScore: 0,
+      setMatchingFilters: (filters) => set({ matchingFilters: filters }),
+      updateConfidenceScore: (score) => set({ confidenceScore: score }),
+      resetMatching: () => set({
+        providers: [],
+        selectedProvider: null,
+        confidenceScore: 0,
+      }),
     }),
     {
       name: 'matching-storage',

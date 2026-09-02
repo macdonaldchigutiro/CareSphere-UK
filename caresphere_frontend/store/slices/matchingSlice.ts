@@ -1,5 +1,18 @@
 import { StateCreator } from 'zustand';
-import { MatchResult, MatchingFilters } from '../types/user.types';
+import { MatchResult } from '../../types/user.types';
+
+export interface MatchingFilters {
+  strategy: 'quality' | 'budget' | 'distance' | 'culture' | 'emergency'
+  max_distance: number
+  max_budget?: number
+  care_type?: string
+  specializations: string[]
+  languages: string[]
+  cultural_needs: string[]
+  gender_preference?: string
+  min_rating?: number
+  emergency_only: boolean
+}
 
 export interface MatchingState {
   matches: MatchResult[]

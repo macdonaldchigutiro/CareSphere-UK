@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { authFetch } from "../../../lib/auth";
+import { API_URL } from "../../../lib/config";
 
 
 export default function AdminServiceUsersPage() {
@@ -28,7 +29,7 @@ export default function AdminServiceUsersPage() {
         setError("");
 
         const response = await authFetch(
-          "http://127.0.0.1:8000/api/users/admin/operations/"
+          `${API_URL}/api/users/admin/operations/`
         );
 
         if (!response.ok) {

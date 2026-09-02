@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Suspense,
   useEffect,
   useMemo,
   useState,
@@ -37,10 +38,7 @@ import {
   getAuthStorage,
   getStoredUser,
 } from "../../lib/auth";
-
-
-const API_URL =
-  "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 
 function normaliseList(data) {
@@ -96,7 +94,7 @@ function getInitials(name) {
 }
 
 
-export default function FamilyDiscussionsPage() {
+function FamilyDiscussionsContent() {
   const router =
     useRouter();
 
@@ -1970,7 +1968,7 @@ export default function FamilyDiscussionsPage() {
               </h3>
 
               <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-                Family Discussions are tied to this care recipient's Family Circle. Only authorised discussion participants can access the conversation and messages.
+                Family Discussions are tied to this care recipient&apos;s Family Circle. Only authorised discussion participants can access the conversation and messages.
               </p>
 
             </div>
@@ -2190,5 +2188,13 @@ function SummaryCard({
       </p>
 
     </div>
+  );
+}
+
+export default function FamilyDiscussionsPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#F7FAFC]" />}>
+      <FamilyDiscussionsContent />
+    </Suspense>
   );
 }

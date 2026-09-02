@@ -23,8 +23,7 @@ import {
   createLoginUrl,
   getAuthStorage,
 } from "../../lib/auth";
-
-const API_URL = "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 const EMPTY_FORM = {
   first_name: "",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -31,8 +31,7 @@ import {
   getAuthStorage,
   getStoredUser,
 } from "../../lib/auth";
-
-const API_URL = "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 const EMPTY_FORM = {
   title: "",
@@ -119,7 +118,7 @@ function privacyIcon(privacy) {
   return Users;
 }
 
-export default function FamilyNotesPage() {
+function FamilyNotesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -2277,5 +2276,13 @@ function SelectField({
       </select>
 
     </div>
+  );
+}
+
+export default function FamilyNotesPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#F7FAFC]" />}>
+      <FamilyNotesContent />
+    </Suspense>
   );
 }

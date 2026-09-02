@@ -148,13 +148,13 @@ export interface AuthResponse {
   message?: string
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T
   message?: string
   status: number
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T = unknown> {
   count: number
   next: string | null
   previous: string | null

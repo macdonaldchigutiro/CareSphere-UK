@@ -32,8 +32,7 @@ import {
   isFullUkPostcode,
   normalisePostcode,
 } from "../../lib/postcode";
-
-const API_URL = "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 export default function FindCarePage() {
   const router = useRouter();

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import axios from 'axios'
 import api from '@/lib/api'
 
 interface User {
@@ -42,6 +43,8 @@ export function useAuth() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr)
+        // Browser storage is external state and must be hydrated after mount.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAuthState({
           user,
           isLoading: false,
@@ -79,7 +82,7 @@ export function useAuth() {
       })
       
       return { success: true, user }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setAuthState({
         user: null,
         isLoading: false,
@@ -88,7 +91,9 @@ export function useAuth() {
       
       return {
         success: false,
-        error: error.response?.data || 'Login failed',
+        error: axios.isAxiosError(error)
+          ? error.response?.data || 'Login failed'
+          : 'Login failed',
       }
     }
   }, [])
@@ -111,7 +116,7 @@ export function useAuth() {
       })
       
       return { success: true, user }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setAuthState({
         user: null,
         isLoading: false,
@@ -120,7 +125,9 @@ export function useAuth() {
       
       return {
         success: false,
-        error: error.response?.data || 'Registration failed',
+        error: axios.isAxiosError(error)
+          ? error.response?.data || 'Registration failed'
+          : 'Registration failed',
       }
     }
   }, [])

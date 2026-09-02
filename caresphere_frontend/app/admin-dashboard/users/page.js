@@ -15,6 +15,7 @@ import {
   authFetch,
   getStoredUser,
 } from "../../../lib/auth";
+import { API_URL } from "../../../lib/config";
 
 
 export default function AdminUsersPage() {
@@ -38,7 +39,7 @@ export default function AdminUsersPage() {
       setError("");
 
       const response = await authFetch(
-        "http://127.0.0.1:8000/api/users/admin/governance/"
+        `${API_URL}/api/users/admin/governance/`
       );
 
       if (!response.ok) {
@@ -90,7 +91,7 @@ export default function AdminUsersPage() {
       setActionError("");
 
       const response = await authFetch(
-        `http://127.0.0.1:8000/api/users/admin/actions/users/${user.id}/status/`,
+        `${API_URL}/api/users/admin/actions/users/${user.id}/status/`,
         {
           method: "POST",
           headers: {

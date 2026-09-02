@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import {
   ArrowLeft,
@@ -29,8 +29,7 @@ import {
   getAuthStorage,
   getStoredUser,
 } from "../../lib/auth";
-
-const API_URL = "http://127.0.0.1:8000";
+import { API_URL } from "../../lib/config";
 
 const EMPTY_FORM = {
   title: "",
@@ -130,7 +129,7 @@ function statusClasses(status) {
 }
 
 
-export default function FamilyDecisionsPage() {
+function FamilyDecisionsContent() {
   const router =
     useRouter();
 
@@ -2942,5 +2941,13 @@ function Checkbox({
       {label}
 
     </label>
+  );
+}
+
+export default function FamilyDecisionsPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#F7FAFC]" />}>
+      <FamilyDecisionsContent />
+    </Suspense>
   );
 }
