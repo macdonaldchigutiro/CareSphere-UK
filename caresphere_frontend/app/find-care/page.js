@@ -28,6 +28,10 @@ import {
   createLoginUrl,
   getAuthStorage,
 } from "../../lib/auth";
+import {
+  isFullUkPostcode,
+  normalisePostcode,
+} from "../../lib/postcode";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -49,6 +53,12 @@ export default function FindCarePage() {
   const [sourceFilter, setSourceFilter] = useState("all");
   const [careTypeFilter, setCareTypeFilter] = useState("");
   const [sortBy, setSortBy] = useState("best_match");
+  const [radiusMiles, setRadiusMiles] = useState("25");
+  const [distanceSearch, setDistanceSearch] = useState({
+    enabled: false,
+    origin_postcode: null,
+    radius_miles: null,
+  });
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -70,7 +80,10 @@ export default function FindCarePage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const query = params.get("q")?.trim();
-    const location = params.get("location")?.trim();
+    const location =
+      params.get("origin_postcode")?.trim() ||
+      params.get("location")?.trim();
+    const radius = params.get("radius_miles")?.trim();
     const sort = params.get("sort")?.trim();
 
     if (query) {
@@ -81,12 +94,29 @@ export default function FindCarePage() {
       setLocationTerm(location);
     }
 
-    if (["best_match", "cqc_rating", "name"].includes(sort)) {
+    if (
+      radius &&
+      Number.isFinite(Number(radius)) &&
+      Number(radius) > 0 &&
+      Number(radius) <= 50
+    ) {
+      setRadiusMiles(radius);
+    }
+
+    if (["best_match", "cqc_rating", "distance", "name"].includes(sort)) {
       setSortBy(sort);
     }
 
     setQueryReady(true);
   }, []);
+
+  const isPostcodeSearch = isFullUkPostcode(locationTerm);
+
+  useEffect(() => {
+    if (sortBy === "distance" && !isPostcodeSearch) {
+      setSortBy("best_match");
+    }
+  }, [isPostcodeSearch, sortBy]);
 
   // ======================================================
   // LOAD DISCOVERY RESULTS
@@ -124,7 +154,10 @@ export default function FindCarePage() {
           params.set("care_type", careTypeFilter);
         }
 
-        if (locationTerm.trim()) {
+        if (isPostcodeSearch) {
+          params.set("origin_postcode", normalisePostcode(locationTerm));
+          params.set("radius_miles", radiusMiles);
+        } else if (locationTerm.trim()) {
           params.set("location", locationTerm.trim());
         }
 
@@ -134,9 +167,13 @@ export default function FindCarePage() {
         );
 
         if (!response.ok) {
-          throw new Error(
-            "Unable to load care providers."
-          );
+          const problem = await response.json().catch(() => ({}));
+          const detail =
+            problem.origin_postcode?.[0] ||
+            problem.radius_miles?.[0] ||
+            problem.sort?.[0] ||
+            problem.detail;
+          throw new Error(detail || "Unable to load care providers.");
         }
 
         const data = await response.json();
@@ -159,6 +196,13 @@ export default function FindCarePage() {
             ? data.query_corrections
             : []
         );
+        setDistanceSearch(
+          data.distance_search || {
+            enabled: false,
+            origin_postcode: null,
+            radius_miles: null,
+          }
+        );
       } catch (err) {
         if (err.name === "AbortError") {
           return;
@@ -170,7 +214,9 @@ export default function FindCarePage() {
         );
 
         setError(
-          "We couldn't load care providers. Please make sure the CareSphere backend is running."
+          err instanceof TypeError
+            ? "We couldn't load care providers. Please make sure the CareSphere backend is running."
+            : err.message || "We couldn't load care providers. Please try again."
         );
         setProviders([]);
         setResultCount(0);
@@ -180,6 +226,11 @@ export default function FindCarePage() {
           cqc_directory: 0,
         });
         setQueryCorrections([]);
+        setDistanceSearch({
+          enabled: false,
+          origin_postcode: null,
+          radius_miles: null,
+        });
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
@@ -189,7 +240,7 @@ export default function FindCarePage() {
 
     const debounce = window.setTimeout(
       loadProviders,
-      searchTerm.trim() ? 300 : 0
+      searchTerm.trim() || locationTerm.trim() ? 300 : 0
     );
 
     return () => {
@@ -205,6 +256,8 @@ export default function FindCarePage() {
     sourceFilter,
     careTypeFilter,
     locationTerm,
+    isPostcodeSearch,
+    radiusMiles,
     sortBy,
     page,
   ]);
@@ -219,6 +272,7 @@ export default function FindCarePage() {
     sourceFilter,
     careTypeFilter,
     locationTerm,
+    radiusMiles,
     sortBy,
   ]);
 
@@ -577,6 +631,7 @@ export default function FindCarePage() {
     setSourceFilter("all");
     setCareTypeFilter("");
     setSortBy("best_match");
+    setRadiusMiles("25");
     setPage(1);
   };
 
@@ -692,7 +747,7 @@ export default function FindCarePage() {
                     event.target.value
                   )
                 }
-                placeholder="Town, county or postcode"
+                placeholder="Town or full postcode, e.g. WD17 1NA"
                 className="w-full rounded-2xl border border-white/10 bg-white py-4 pl-14 pr-5 text-slate-800 outline-none transition focus:ring-4 focus:ring-teal-500/20"
               />
 
@@ -796,10 +851,44 @@ export default function FindCarePage() {
                     CQC rating
                   </option>
 
+                  <option value="distance" disabled={!isPostcodeSearch}>
+                    Nearest first
+                  </option>
+
                   <option value="name">
                     Provider name
                   </option>
                 </select>
+
+              </div>
+
+              <div className="mt-5">
+
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <label className="block text-sm font-bold text-slate-700">
+                    Search radius
+                  </label>
+
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    {radiusMiles} miles
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={radiusMiles}
+                  onChange={(event) => setRadiusMiles(event.target.value)}
+                  disabled={!isPostcodeSearch}
+                  className="w-full accent-[#0F766E] disabled:cursor-not-allowed disabled:opacity-40"
+                />
+
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  {isPostcodeSearch
+                    ? `Using ${normalisePostcode(locationTerm)} as the centre.`
+                    : "Enter a full postcode to use distance and radius."}
+                </p>
 
               </div>
 
@@ -1010,6 +1099,18 @@ export default function FindCarePage() {
               </div>
             )}
 
+            {!loading && distanceSearch.enabled && (
+              <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-950">
+                Showing providers within{" "}
+                <span className="font-bold">
+                  {distanceSearch.radius_miles} miles of{" "}
+                  {distanceSearch.origin_postcode}
+                </span>
+                . Distances are approximate straight-line distances between
+                postcode centres, not driving distances.
+              </div>
+            )}
+
             {!loading && resultCount > 0 && (
               <div className="mb-6">
                 <div className="flex flex-wrap gap-2 text-xs font-bold">
@@ -1027,9 +1128,10 @@ export default function FindCarePage() {
                     <span className="font-bold">
                       How best match works:
                     </span>{" "}
-                    care needs come first, followed by location, available CQC
-                    quality information and trusted registration. A provider is
-                    not marked down when no CQC rating is available.
+                    care needs come first, followed by{" "}
+                    {distanceSearch.enabled ? "distance" : "location"}, available
+                    CQC quality information and trusted registration. A provider
+                    is not marked down when no CQC rating is available.
                   </div>
                 )}
 
@@ -1045,6 +1147,22 @@ export default function FindCarePage() {
                       Open Government Licence
                     </a>
                     . Check each CQC profile for the latest details.
+                  </p>
+                )}
+
+                {distanceSearch.enabled && (
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    Postcode coordinates supplied by{" "}
+                    <a
+                      href="https://postcodes.io/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-[#0F766E] underline"
+                    >
+                      Postcodes.io
+                    </a>
+                    , using Ordnance Survey and Office for National Statistics
+                    open data.
                   </p>
                 )}
               </div>
@@ -1237,6 +1355,16 @@ export default function FindCarePage() {
                             </div>
 
                             <div className="mt-6 space-y-3 rounded-2xl bg-slate-50 p-4">
+
+                              {provider.distance_miles !== null &&
+                                provider.distance_miles !== undefined && (
+                                  <div className="flex items-center gap-3 text-sm font-bold text-[#0F766E]">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>
+                                      {Number(provider.distance_miles).toFixed(1)} miles away
+                                    </span>
+                                  </div>
+                                )}
 
                               <div className="flex items-center gap-3 text-sm text-slate-600">
 

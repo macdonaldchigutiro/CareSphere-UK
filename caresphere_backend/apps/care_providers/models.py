@@ -226,6 +226,16 @@ class ExternalProviderLocation(models.Model):
     location_url = models.URLField(max_length=500)
     latest_check_date = models.DateField(null=True, blank=True)
 
+    # Approximate postcode-centroid coordinates used for radius discovery.
+    # These are enriched separately so the weekly CQC import remains offline.
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True
+    )
+    coordinates_updated_at = models.DateTimeField(null=True, blank=True)
+
     # Quality data is enriched separately from CQC's monthly ratings sheet.
     # The weekly directory CSV does not contain ratings.
     cqc_rating = models.CharField(max_length=50, blank=True, db_index=True)
@@ -256,6 +266,9 @@ class ExternalProviderLocation(models.Model):
             ),
             models.Index(
                 fields=["is_active", "name"], name="ext_provider_active_name_idx"
+            ),
+            models.Index(
+                fields=["latitude", "longitude"], name="ext_provider_coords_idx"
             ),
         ]
 

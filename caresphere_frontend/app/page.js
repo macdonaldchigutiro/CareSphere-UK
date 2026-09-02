@@ -22,6 +22,11 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  isFullUkPostcode,
+  normalisePostcode,
+} from "../lib/postcode";
+
 const matchStrategies = [
   {
     id: "quality",
@@ -300,7 +305,10 @@ export default function Home() {
       params.set("q", query);
     }
 
-    if (location) {
+    if (isFullUkPostcode(location)) {
+      params.set("origin_postcode", normalisePostcode(location));
+      params.set("radius_miles", String(distance));
+    } else if (location) {
       params.set("location", location);
     }
 
@@ -629,7 +637,7 @@ export default function Home() {
                       handleMatch();
                     }
                   }}
-                  placeholder="Town, county or postcode"
+                  placeholder="Town or full postcode, e.g. WD17 1NA"
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm outline-none transition focus:border-[#0F766E] focus:bg-white focus:ring-4 focus:ring-teal-100"
                 />
               </div>
@@ -808,7 +816,7 @@ export default function Home() {
                       onChange={(event) =>
                         setLocationTerm(event.target.value)
                       }
-                      placeholder="For example Watford or WD17"
+                      placeholder="For example Watford or WD17 1NA"
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-[#0F766E] focus:bg-white"
                     />
                   </div>
@@ -828,7 +836,7 @@ export default function Home() {
                   <input
                     type="range"
                     min="1"
-                    max="100"
+                    max="50"
                     value={distance}
                     onChange={(event) =>
                       setDistance(Number(event.target.value))

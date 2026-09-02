@@ -89,6 +89,9 @@ UPDATE_FIELDS = [
     "region",
     "location_url",
     "latest_check_date",
+    "latitude",
+    "longitude",
+    "coordinates_updated_at",
     "source_published_on",
     "content_hash",
     "search_document",
@@ -446,6 +449,7 @@ def import_cqc_directory(
             continue
 
         was_inactive = not current.is_active
+        postcode_changed = current.postcode != values["postcode"]
         has_changed = current.content_hash != values["content_hash"]
 
         if was_inactive:
@@ -457,6 +461,12 @@ def import_cqc_directory(
 
         for field_name, value in values.items():
             setattr(current, field_name, value)
+        if postcode_changed:
+            # A postcode change invalidates coordinates from the previous
+            # address. The enrichment command will safely repopulate them.
+            current.latitude = None
+            current.longitude = None
+            current.coordinates_updated_at = None
         current.is_active = True
         current.last_seen_at = seen_at
 

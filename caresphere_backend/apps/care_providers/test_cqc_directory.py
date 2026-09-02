@@ -1,8 +1,10 @@
 import csv
 from html import escape
 from io import BytesIO, StringIO
+from unittest.mock import patch
 from zipfile import ZipFile
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -12,6 +14,7 @@ from apps.users.models import User
 from .models import CareProvider, ExternalProviderLocation
 from .services.cqc_directory import import_cqc_directory, parse_cqc_directory
 from .services.cqc_ratings import import_cqc_ratings, parse_cqc_ratings
+from .services.postcode_geo import PostcodeCoordinates, PostcodeServiceError
 
 HEADER = [
     "Name",
@@ -240,6 +243,95 @@ class CQCDirectoryImportTests(TestCase):
             ExternalProviderLocation.objects.get(cqc_location_id="1-200").is_active
         )
 
+    def test_refresh_preserves_coordinates_until_the_postcode_changes(self):
+        import_cqc_directory(
+            make_csv(
+                [
+                    cqc_row(
+                        "Alpha Home Care",
+                        "1-100",
+                        "Homecare agencies",
+                        postcode="WD17 1AA",
+                    )
+                ]
+            )
+        )
+        location = ExternalProviderLocation.objects.get(cqc_location_id="1-100")
+        location.latitude = 51.656
+        location.longitude = -0.397
+        location.coordinates_updated_at = timezone.now()
+        location.save(
+            update_fields=["latitude", "longitude", "coordinates_updated_at"]
+        )
+
+        import_cqc_directory(
+            make_csv(
+                [
+                    cqc_row(
+                        "Alpha Home Care Renamed",
+                        "1-100",
+                        "Homecare agencies",
+                        postcode="WD17 1AA",
+                    )
+                ]
+            )
+        )
+        location.refresh_from_db()
+        self.assertIsNotNone(location.latitude)
+        self.assertIsNotNone(location.coordinates_updated_at)
+
+        import_cqc_directory(
+            make_csv(
+                [
+                    cqc_row(
+                        "Alpha Home Care Renamed",
+                        "1-100",
+                        "Homecare agencies",
+                        postcode="WD18 0AA",
+                    )
+                ]
+            )
+        )
+        location.refresh_from_db()
+        self.assertIsNone(location.latitude)
+        self.assertIsNone(location.longitude)
+        self.assertIsNone(location.coordinates_updated_at)
+
+    @patch(
+        "apps.care_providers.management.commands.enrich_provider_coordinates."
+        "build_retrying_session"
+    )
+    @patch(
+        "apps.care_providers.management.commands.enrich_provider_coordinates."
+        "bulk_lookup_postcodes"
+    )
+    def test_coordinate_enrichment_supports_dry_run_and_write(
+        self,
+        bulk_lookup,
+        build_session,
+    ):
+        import_cqc_directory(
+            make_csv([cqc_row("Alpha Home Care", "1-100", "Homecare agencies")])
+        )
+        build_session.return_value = object()
+        bulk_lookup.return_value = {
+            "WD17 1AA": PostcodeCoordinates(
+                postcode="WD17 1AA",
+                latitude=51.656,
+                longitude=-0.397,
+            )
+        }
+
+        call_command("enrich_provider_coordinates", "--dry-run", stdout=StringIO())
+        location = ExternalProviderLocation.objects.get(cqc_location_id="1-100")
+        self.assertIsNone(location.latitude)
+
+        call_command("enrich_provider_coordinates", stdout=StringIO())
+        location.refresh_from_db()
+        self.assertAlmostEqual(float(location.latitude), 51.656, places=3)
+        self.assertAlmostEqual(float(location.longitude), -0.397, places=3)
+        self.assertIsNotNone(location.coordinates_updated_at)
+
 
 class CQCRatingsImportTests(TestCase):
     def test_parser_keeps_latest_location_level_overall_rating(self):
@@ -343,6 +435,8 @@ class ProviderDiscoveryTests(TestCase):
             city="Watford",
             postcode="WD17 2BB",
             county="Hertfordshire",
+            latitude=51.655000,
+            longitude=-0.396000,
             phone="01923 111111",
             email="care@example.com",
             is_verified=True,
@@ -364,6 +458,8 @@ class ProviderDiscoveryTests(TestCase):
             care_types=["specialist"],
             local_authority="Hertfordshire",
             region="East of England",
+            latitude=51.660000,
+            longitude=-0.400000,
             location_url="https://www.cqc.org.uk/location/1-EXT",
             cqc_rating="Outstanding",
             cqc_rating_date=timezone.now().date(),
@@ -512,3 +608,113 @@ class ProviderDiscoveryTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 0)
+
+    @patch("apps.care_providers.views.resolve_search_postcode")
+    def test_postcode_radius_filters_and_sorts_by_distance(self, resolve_postcode):
+        resolve_postcode.return_value = PostcodeCoordinates(
+            postcode="WD17 1NA",
+            latitude=51.655000,
+            longitude=-0.396000,
+        )
+        ExternalProviderLocation.objects.create(
+            cqc_location_id="1-FAR",
+            cqc_provider_id="1-PROVIDER",
+            name="Faraway Dementia Care",
+            provider_name="Faraway Ltd",
+            address="1 High Street, Cambridge",
+            postcode="CB1 1AA",
+            phone="01223 000000",
+            service_types=["Residential homes"],
+            specialisms=["Dementia"],
+            care_types=["residential"],
+            local_authority="Cambridgeshire",
+            region="East of England",
+            latitude=52.205300,
+            longitude=0.121800,
+            location_url="https://www.cqc.org.uk/location/1-FAR",
+            cqc_rating="Outstanding",
+            content_hash="b" * 64,
+            search_document="faraway dementia care residential dementia cb1 1aa",
+            last_seen_at=timezone.now(),
+        )
+
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {
+                "q": "dementia",
+                "origin_postcode": "wd171na",
+                "radius_miles": "10",
+                "sort": "distance",
+                "page_size": 10,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["origin_postcode"], "WD17 1NA")
+        self.assertEqual(response.data["radius_miles"], 10.0)
+        self.assertEqual(response.data["results"][0]["source"], "caresphere")
+        self.assertEqual(response.data["results"][0]["distance_miles"], 0.0)
+        self.assertIn(
+            "0.0 miles from WD17 1NA",
+            response.data["results"][0]["match_reasons"],
+        )
+        self.assertTrue(response.data["distance_search"]["enabled"])
+        self.assertEqual(
+            response.data["distance_search"]["measurement"],
+            "straight_line",
+        )
+
+    def test_radius_and_distance_sort_require_a_full_origin_postcode(self):
+        radius_response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"radius_miles": "10"},
+        )
+        distance_response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"sort": "distance"},
+        )
+        invalid_response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"origin_postcode": "WD17"},
+        )
+
+        self.assertEqual(radius_response.status_code, 400)
+        self.assertEqual(distance_response.status_code, 400)
+        self.assertEqual(invalid_response.status_code, 400)
+
+    @patch("apps.care_providers.services.postcode_geo.lookup_postcode")
+    def test_radius_search_reuses_stored_coordinates(self, remote_lookup):
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {
+                "q": "dementia",
+                "origin_postcode": "WD17 2BB",
+                "radius_miles": "10",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["origin_postcode"], "WD17 2BB")
+        remote_lookup.assert_not_called()
+
+    @patch("apps.care_providers.views.resolve_search_postcode")
+    def test_postcode_service_failure_returns_503(self, resolve_postcode):
+        resolve_postcode.side_effect = PostcodeServiceError("Service unavailable")
+
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"origin_postcode": "WD17 1NA"},
+        )
+
+        self.assertEqual(response.status_code, 503)
+
+    @patch("apps.care_providers.views.resolve_search_postcode")
+    def test_radius_must_be_finite(self, resolve_postcode):
+        response = self.client.get(
+            "/api/care-providers/discovery/",
+            {"origin_postcode": "WD17 1NA", "radius_miles": "NaN"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        resolve_postcode.assert_not_called()

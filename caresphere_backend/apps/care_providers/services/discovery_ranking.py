@@ -36,6 +36,20 @@ def quality_score_expression(field_name: str = "cqc_rating"):
     )
 
 
+def distance_score_expression(field_name: str = "distance_miles"):
+    """Reward proximity without allowing it to outweigh care suitability."""
+
+    return Case(
+        When(**{f"{field_name}__lte": 1}, then=Value(40)),
+        When(**{f"{field_name}__lte": 5}, then=Value(35)),
+        When(**{f"{field_name}__lte": 10}, then=Value(28)),
+        When(**{f"{field_name}__lte": 25}, then=Value(18)),
+        When(**{f"{field_name}__lte": 50}, then=Value(8)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )
+
+
 def internal_match_score(query_terms, *, care_type: str, location: str):
     score = quality_score_expression() + _score_case(
         [(Q(is_verified=True) | Q(cqc_verified=True), 5)]
@@ -134,6 +148,7 @@ def add_match_explanation(
     query_terms,
     care_type: str,
     location: str,
+    origin_postcode: str = "",
 ) -> dict:
     """Attach concise reasons without presenting the score as a percentage."""
 
@@ -165,7 +180,10 @@ def add_match_explanation(
     elif care_type:
         reasons.append(f"Offers {care_type.replace('_', ' ')} care")
 
-    if location:
+    distance = data.get("distance_miles")
+    if distance is not None and origin_postcode:
+        reasons.append(f"{float(distance):.1f} miles from {origin_postcode}")
+    elif location:
         reasons.append(f"Matches location: {location}")
     elif location_terms:
         reasons.append(
@@ -188,7 +206,12 @@ def add_match_explanation(
     data["match_reasons"] = reasons
     data["match_breakdown"] = {
         "care_match": bool(care_terms or care_type),
-        "location_match": bool(location or location_terms),
+        "location_match": bool(
+            location or location_terms or distance is not None
+        ),
+        "distance_miles": (
+            round(float(distance), 1) if distance is not None else None
+        ),
         "quality_rating": rating or None,
         "trusted_source": bool(
             data.get("is_verified") or data.get("cqc_registered")
@@ -201,8 +224,18 @@ def result_ordering_key(item: dict, sort: str):
     name = str(item.get("company_name", "")).casefold()
     source_order = 0 if item.get("source") == "caresphere" else 1
     identifier = str(item.get("id", ""))
+    distance = item.get("distance_miles")
+    distance_order = float(distance) if distance is not None else float("inf")
     if sort == "name":
         return name, source_order, identifier
+    if sort == "distance":
+        return (
+            distance_order,
+            -int(item.get("match_score") or 0),
+            name,
+            source_order,
+            identifier,
+        )
     if sort == "cqc_rating":
         return (
             -int(item.get("quality_score") or 0),
@@ -213,6 +246,7 @@ def result_ordering_key(item: dict, sort: str):
         )
     return (
         -int(item.get("match_score") or 0),
+        distance_order,
         name,
         source_order,
         identifier,

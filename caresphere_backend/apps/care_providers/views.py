@@ -1,3 +1,4 @@
+import math
 import re
 
 from django.db.models import Q
@@ -8,8 +9,10 @@ from rest_framework import (
     filters,
     generics,
     permissions,
+    status,
 )
 from rest_framework.exceptions import (
+    APIException,
     NotFound,
     PermissionDenied,
     ValidationError,
@@ -34,10 +37,18 @@ from .serializers import (
 )
 from .services.discovery_ranking import (
     add_match_explanation,
+    distance_score_expression,
     external_match_score,
     internal_match_score,
     quality_score_expression,
     result_ordering_key,
+)
+from .services.postcode_geo import (
+    PostcodeFormatError,
+    PostcodeNotFound,
+    PostcodeServiceError,
+    apply_radius_filter,
+    resolve_search_postcode,
 )
 
 
@@ -66,6 +77,12 @@ DISCOVERY_STOP_WORDS = frozenset(
         "with",
     }
 )
+
+
+class PostcodeLookupUnavailable(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "Postcode lookup is temporarily unavailable. Please try again."
+    default_code = "postcode_lookup_unavailable"
 
 
 def normalise_discovery_query(query):
@@ -201,6 +218,20 @@ class ProviderDiscoveryView(APIView):
         return parsed
 
     @staticmethod
+    def _positive_float(value, *, name, default, maximum=None):
+        if value in (None, ""):
+            return default
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError({name: "Must be a positive number."}) from exc
+        if not math.isfinite(parsed) or parsed <= 0:
+            raise ValidationError({name: "Must be a positive number."})
+        if maximum is not None and parsed > maximum:
+            raise ValidationError({name: f"Must not exceed {maximum}."})
+        return parsed
+
+    @staticmethod
     def _internal_result(provider):
         data = CareProviderSerializer(provider).data
         data.update(
@@ -242,6 +273,16 @@ class ProviderDiscoveryView(APIView):
         location = " ".join(
             request.query_params.get("location", "").split()
         )[:150]
+        origin_postcode = " ".join(
+            request.query_params.get("origin_postcode", "").upper().split()
+        )[:12]
+        radius_requested = request.query_params.get("radius_miles")
+        radius_miles = self._positive_float(
+            radius_requested,
+            name="radius_miles",
+            default=25.0,
+            maximum=50,
+        )
         sort = request.query_params.get("sort", "best_match").casefold()
         verification = request.query_params.get("verification", "all").casefold()
         cqc_rating = request.query_params.get("cqc_rating", "all").replace(
@@ -255,11 +296,29 @@ class ProviderDiscoveryView(APIView):
                 {"source": f"Choose one of: {', '.join(sorted(allowed_sources))}."}
             )
 
-        allowed_sorts = {"best_match", "cqc_rating", "name"}
+        allowed_sorts = {"best_match", "cqc_rating", "distance", "name"}
         if sort not in allowed_sorts:
             raise ValidationError(
                 {"sort": f"Choose one of: {', '.join(sorted(allowed_sorts))}."}
             )
+        if radius_requested not in (None, "") and not origin_postcode:
+            raise ValidationError(
+                {"radius_miles": "A full origin_postcode is required."}
+            )
+        if sort == "distance" and not origin_postcode:
+            raise ValidationError(
+                {"sort": "Nearest-first sorting requires a full origin_postcode."}
+            )
+
+        origin = None
+        if origin_postcode:
+            try:
+                origin = resolve_search_postcode(origin_postcode)
+            except (PostcodeFormatError, PostcodeNotFound) as exc:
+                raise ValidationError({"origin_postcode": str(exc)}) from exc
+            except PostcodeServiceError as exc:
+                raise PostcodeLookupUnavailable(str(exc)) from exc
+            origin_postcode = origin.postcode
 
         allowed_care_types = {
             value for value, _label in CareProvider.CareType.choices
@@ -372,26 +431,52 @@ class ProviderDiscoveryView(APIView):
             # Funding is unknown for directory-only results.
             external = external.none()
 
+        coordinates_unavailable = {"caresphere": 0, "cqc_directory": 0}
+        if origin is not None:
+            coordinates_unavailable = {
+                "caresphere": internal.filter(
+                    Q(latitude__isnull=True) | Q(longitude__isnull=True)
+                ).count(),
+                "cqc_directory": external.filter(
+                    Q(latitude__isnull=True) | Q(longitude__isnull=True)
+                ).count(),
+            }
+            internal = apply_radius_filter(internal, origin, radius_miles)
+            external = apply_radius_filter(external, origin, radius_miles)
+
+        internal_score = internal_match_score(
+            query_terms,
+            care_type=care_type,
+            location=location,
+        )
+        external_score = external_match_score(
+            query_terms,
+            care_type=care_type,
+            location=location,
+        )
+        if origin is not None:
+            internal_score += distance_score_expression()
+            external_score += distance_score_expression()
+
         internal = internal.annotate(
-            match_score=internal_match_score(
-                query_terms,
-                care_type=care_type,
-                location=location,
-            ),
+            match_score=internal_score,
             quality_score=quality_score_expression(),
         )
         external = external.annotate(
-            match_score=external_match_score(
-                query_terms,
-                care_type=care_type,
-                location=location,
-            ),
+            match_score=external_score,
             quality_score=quality_score_expression(),
         )
 
         if sort == "name":
             internal = internal.order_by("company_name", "id")
             external = external.order_by("name", "id")
+        elif sort == "distance":
+            internal = internal.order_by(
+                "distance_miles", "-match_score", "company_name", "id"
+            )
+            external = external.order_by(
+                "distance_miles", "-match_score", "name", "id"
+            )
         elif sort == "cqc_rating":
             internal = internal.order_by(
                 "-quality_score", "-match_score", "company_name", "id"
@@ -400,8 +485,13 @@ class ProviderDiscoveryView(APIView):
                 "-quality_score", "-match_score", "name", "id"
             )
         else:
-            internal = internal.order_by("-match_score", "company_name", "id")
-            external = external.order_by("-match_score", "name", "id")
+            internal_order = ["-match_score"]
+            external_order = ["-match_score"]
+            if origin is not None:
+                internal_order.append("distance_miles")
+                external_order.append("distance_miles")
+            internal = internal.order_by(*internal_order, "company_name", "id")
+            external = external.order_by(*external_order, "name", "id")
         internal_count = internal.count()
         external_count = external.count()
         total = internal_count + external_count
@@ -415,6 +505,11 @@ class ProviderDiscoveryView(APIView):
                 {
                     "match_score": provider.match_score,
                     "quality_score": provider.quality_score,
+                    "distance_miles": (
+                        round(float(provider.distance_miles), 1)
+                        if origin is not None
+                        else None
+                    ),
                 }
             )
             combined.append(
@@ -423,6 +518,7 @@ class ProviderDiscoveryView(APIView):
                     query_terms=query_terms,
                     care_type=care_type,
                     location=location,
+                    origin_postcode=origin_postcode,
                 )
             )
 
@@ -432,6 +528,11 @@ class ProviderDiscoveryView(APIView):
                 {
                     "match_score": external_location.match_score,
                     "quality_score": external_location.quality_score,
+                    "distance_miles": (
+                        round(float(external_location.distance_miles), 1)
+                        if origin is not None
+                        else None
+                    ),
                 }
             )
             combined.append(
@@ -440,6 +541,7 @@ class ProviderDiscoveryView(APIView):
                     query_terms=query_terms,
                     care_type=care_type,
                     location=location,
+                    origin_postcode=origin_postcode,
                 )
             )
 
@@ -459,10 +561,24 @@ class ProviderDiscoveryView(APIView):
                 "interpreted_query": " ".join(query_terms),
                 "query_corrections": query_corrections,
                 "location": location,
+                "origin_postcode": origin_postcode or None,
+                "radius_miles": radius_miles if origin is not None else None,
                 "sort": sort,
                 "ranking": {
-                    "signals": ["care_match", "location_match", "cqc_quality"],
+                    "signals": [
+                        "care_match",
+                        "distance" if origin is not None else "location_match",
+                        "cqc_quality",
+                    ],
                     "quality_unknown_is_neutral": True,
+                },
+                "distance_search": {
+                    "enabled": origin is not None,
+                    "origin_postcode": origin_postcode or None,
+                    "radius_miles": radius_miles if origin is not None else None,
+                    "measurement": "straight_line",
+                    "coordinates": "postcode_centroid",
+                    "excluded_without_coordinates": coordinates_unavailable,
                 },
                 "source_counts": {
                     "caresphere": internal_count,
