@@ -79,7 +79,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     env:
-      DATABASE_URL: sqlite:///${{ runner.temp }}/caresphere-e2e.sqlite3
       DEBUG: "True"
       E2E_DEMO_PASSWORD: CareSphereE2E!2026
       NEXT_PUBLIC_API_URL: http://127.0.0.1:8100/api
