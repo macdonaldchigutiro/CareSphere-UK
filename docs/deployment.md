@@ -6,8 +6,8 @@ This checklist covers the repository's Docker-based production deployment. It do
 
 Use staging to validate the hosted application before configuring the production
 domain. The repository's `render.yaml` defines the Django API. It deploys from
-`main` only after GitHub checks pass, runs migrations before release and verifies
-`/api/health/`.
+`main` only after GitHub checks pass, runs migrations at service startup before
+Gunicorn and verifies `/api/health/`.
 
 ### 1. Deploy the backend on Render
 

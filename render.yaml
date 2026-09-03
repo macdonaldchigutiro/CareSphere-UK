@@ -8,8 +8,7 @@ services:
     rootDir: caresphere_backend
     autoDeployTrigger: checksPass
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    preDeployCommand: python manage.py migrate --noinput
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class gthread caresphere_backend.wsgi:application
+    startCommand: python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class gthread caresphere_backend.wsgi:application
     healthCheckPath: /api/health/
     envVars:
       - key: DEBUG
