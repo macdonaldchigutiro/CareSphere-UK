@@ -27,6 +27,8 @@ const sharedEnvironment = {
   ...process.env,
   DATABASE_URL: databaseUrl,
   DEBUG: "True",
+  CORS_ALLOWED_ORIGINS: "http://127.0.0.1:3100",
+  CSRF_TRUSTED_ORIGINS: "http://127.0.0.1:3100",
   E2E_DEMO_PASSWORD: demoPassword,
   NEXT_PUBLIC_API_URL: "http://127.0.0.1:8100/api",
   PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3100",
