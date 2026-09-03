@@ -13,6 +13,7 @@ Gunicorn and verifies `/api/health/`.
 
 1. In Render, create a new Blueprint from the CareSphere GitHub repository.
 2. Render detects `render.yaml` and creates `caresphere-api-staging`.
+   The Blueprint pins Python 3.11.16 to match the tested CI runtime.
 3. Enter the prompted values without committing them:
    - `DATABASE_URL`: the Supabase PostgreSQL pooler connection string.
    - `ALLOWED_HOSTS`: the Render hostname only, without `https://`.

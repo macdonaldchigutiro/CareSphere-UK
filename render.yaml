@@ -11,6 +11,8 @@ services:
     startCommand: python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class gthread caresphere_backend.wsgi:application
     healthCheckPath: /api/health/
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.16"
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
