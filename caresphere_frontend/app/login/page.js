@@ -289,7 +289,10 @@ function LoginContent() {
 
               <div>
 
-                <label className="mb-2 block text-sm font-bold text-slate-700">
+                <label
+                  htmlFor="login-email"
+                  className="mb-2 block text-sm font-bold text-slate-700"
+                >
                   Email address
                 </label>
 
@@ -298,6 +301,7 @@ function LoginContent() {
                   <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
 
                   <input
+                    id="login-email"
                     type="email"
                     value={email}
                     onChange={(event) =>
@@ -320,7 +324,10 @@ function LoginContent() {
 
                 <div className="mb-2 flex items-center justify-between">
 
-                  <label className="text-sm font-bold text-slate-700">
+                  <label
+                    htmlFor="login-password"
+                    className="text-sm font-bold text-slate-700"
+                  >
                     Password
                   </label>
 
@@ -338,6 +345,7 @@ function LoginContent() {
                   <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
 
                   <input
+                    id="login-password"
                     type={
                       showPassword
                         ? "text"

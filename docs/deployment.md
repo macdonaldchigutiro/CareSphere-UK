@@ -27,9 +27,13 @@ npm ci
 npm run lint
 npm run typecheck
 npm run build
+npm run test:e2e
 ```
 
 GitHub Actions runs the same checks on every pull request and push to `main`.
+It also creates an isolated demonstration database and runs the client, care-company
+and administrator journeys in Chromium. Browser-test screenshots, traces and the
+HTML report are uploaded when a journey fails.
 
 ## Local three-role demonstration
 
