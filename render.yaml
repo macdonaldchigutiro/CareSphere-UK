@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: caresphere-api-staging
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+    rootDir: caresphere_backend
+    autoDeployTrigger: checksPass
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    preDeployCommand: python manage.py migrate --noinput
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class gthread caresphere_backend.wsgi:application
+    healthCheckPath: /api/health/
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+      - key: SECURE_HSTS_SECONDS
+        value: "3600"

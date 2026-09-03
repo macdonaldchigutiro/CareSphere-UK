@@ -2,6 +2,40 @@
 
 This checklist covers the repository's Docker-based production deployment. It does not copy development secrets or data into production.
 
+## Staging on Render and Vercel
+
+Use staging to validate the hosted application before configuring the production
+domain. The repository's `render.yaml` defines the Django API. It deploys from
+`main` only after GitHub checks pass, runs migrations before release and verifies
+`/api/health/`.
+
+### 1. Deploy the backend on Render
+
+1. In Render, create a new Blueprint from the CareSphere GitHub repository.
+2. Render detects `render.yaml` and creates `caresphere-api-staging`.
+3. Enter the prompted values without committing them:
+   - `DATABASE_URL`: the Supabase PostgreSQL pooler connection string.
+   - `ALLOWED_HOSTS`: the Render hostname only, without `https://`.
+   - `CORS_ALLOWED_ORIGINS`: the full HTTPS Vercel staging URL.
+   - `CSRF_TRUSTED_ORIGINS`: the same full HTTPS Vercel staging URL.
+4. Confirm `https://<render-host>/api/health/` returns `{"status":"ok"}`.
+
+If the Vercel URL is not known during the first Render setup, use its assigned
+project URL after step 2 below, update the two origin variables, and redeploy.
+
+### 2. Deploy the frontend on Vercel
+
+1. Import the same GitHub repository into Vercel.
+2. Set the Root Directory to `caresphere_frontend`.
+3. Keep the detected Next.js build settings.
+4. Add `NEXT_PUBLIC_API_URL` with the value
+   `https://<render-host>/api` for Preview and Production environments.
+5. Deploy, then copy the assigned HTTPS project URL back into the Render CORS
+   and CSRF variables described above.
+
+Do not seed demonstration users or enter real care information in staging until
+access controls, backups and data-handling approval have been completed.
+
 ## Before deployment
 
 1. Install Docker Engine with Docker Compose.
