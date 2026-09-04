@@ -22,6 +22,10 @@ Gunicorn and verifies `/api/health/`.
    - `CSRF_TRUSTED_ORIGINS`: the same full HTTPS Vercel staging URL.
 4. Confirm `https://<render-host>/api/health/` returns `{"status":"ok"}`.
 
+Render terminates TLS and redirects public HTTP traffic to HTTPS. The staging
+Blueprint therefore leaves Django's additional `SECURE_SSL_REDIRECT` disabled
+so Render's internal health probe can reach the application directly.
+
 If the Vercel URL is not known during the first Render setup, use its assigned
 project URL after step 2 below, update the two origin variables, and redeploy.
 

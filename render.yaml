@@ -26,6 +26,6 @@ services:
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
       - key: SECURE_SSL_REDIRECT
-        value: "True"
+        value: "False"
       - key: SECURE_HSTS_SECONDS
         value: "3600"
