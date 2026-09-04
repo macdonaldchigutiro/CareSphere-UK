@@ -16,7 +16,8 @@ Gunicorn and verifies `/api/health/`.
    The Blueprint pins Python 3.11.16 to match the tested CI runtime.
 3. Enter the prompted values without committing them:
    - `DATABASE_URL`: the Supabase PostgreSQL pooler connection string.
-   - `ALLOWED_HOSTS`: the Render hostname only, without `https://`.
+   - `ALLOWED_HOSTS` is already set by the Blueprint to the Render staging
+     hostname, without `https://`.
    - `CORS_ALLOWED_ORIGINS`: the full HTTPS Vercel staging URL.
    - `CSRF_TRUSTED_ORIGINS`: the same full HTTPS Vercel staging URL.
 4. Confirm `https://<render-host>/api/health/` returns `{"status":"ok"}`.
