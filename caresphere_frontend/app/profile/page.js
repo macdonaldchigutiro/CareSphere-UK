@@ -42,6 +42,7 @@ export default function ProfilePage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -322,6 +323,29 @@ export default function ProfilePage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    setError("");
+    setSuccess("");
+    try {
+      setIsResending(true);
+      const response = await authFetch(
+        `${API_URL}/api/users/verification/resend/`,
+        { method: "POST", headers: { "Content-Type": "application/json" } }
+      );
+      if (!response || response.status === 401) {
+        goToLogin();
+        return;
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail);
+      setSuccess(data.message);
+    } catch (err) {
+      setError(err?.message || "Unable to resend the verification email.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   // ======================================================
   // LOADING SCREEN
   // ======================================================
@@ -544,6 +568,17 @@ export default function ProfilePage() {
                   Email changes will be handled separately
                   for account security.
                 </p>
+
+                {!profile.is_verified && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={isResending}
+                    className="mt-3 text-sm font-bold text-[#0F766E] disabled:opacity-60"
+                  >
+                    {isResending ? "Sending..." : "Resend verification email"}
+                  </button>
+                )}
 
               </div>
 

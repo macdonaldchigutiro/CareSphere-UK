@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from django.db import transaction
 
 from .models import User
 
@@ -67,6 +68,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return value
 
+    @transaction.atomic
     def create(self, validated_data):
         email = validated_data["email"].lower().strip()
 
@@ -81,6 +83,28 @@ class RegisterSerializer(serializers.ModelSerializer):
                 "family",
             ),
         )
+
+        # Provider workspaces require a linked CareProvider row.  Create a
+        # deliberately incomplete draft here so the self-service profile can
+        # be loaded and completed immediately after registration.
+        if user.user_type == "provider":
+            from apps.care_providers.models import CareProvider
+
+            display_name = user.get_full_name().strip() or email
+            CareProvider.objects.create(
+                user=user,
+                company_name=display_name,
+                business_type=CareProvider.BusinessType.INDIVIDUAL,
+                care_types=[],
+                specializations=[],
+                address_line1="",
+                city="",
+                postcode="",
+                county="",
+                phone="",
+                email=email,
+                is_accepting_clients=False,
+            )
 
         return user
 

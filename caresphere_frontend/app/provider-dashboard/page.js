@@ -36,6 +36,14 @@ import { API_URL } from "../../lib/config";
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
+  const [isNewAccount, setIsNewAccount] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isNew = params.get("new") === "1";
+    setIsNewAccount(isNew);
+    if (isNew) window.history.replaceState({}, "", window.location.pathname);
+  }, []);
 
   const [
     user,
@@ -1523,7 +1531,7 @@ export default function ProviderDashboardPage() {
                   md:text-4xl
                 "
               >
-                Welcome back,
+                {isNewAccount ? "Welcome," : "Welcome back,"}
                 {" "}
                 {getProviderName()}
               </h1>

@@ -13,7 +13,6 @@ from rest_framework import (
 )
 from rest_framework.exceptions import (
     APIException,
-    NotFound,
     PermissionDenied,
     ValidationError,
 )
@@ -119,11 +118,23 @@ def get_provider_for_user(user):
             "This endpoint is only available " "to care provider accounts."
         )
 
-    try:
-        return CareProvider.objects.get(user=user)
-
-    except CareProvider.DoesNotExist:
-        raise NotFound("No CareProvider profile is linked " "to this account.")
+    provider, _ = CareProvider.objects.get_or_create(
+        user=user,
+        defaults={
+            "company_name": user.get_full_name().strip() or user.email,
+            "business_type": CareProvider.BusinessType.INDIVIDUAL,
+            "care_types": [],
+            "specializations": [],
+            "address_line1": "",
+            "city": "",
+            "postcode": "",
+            "county": "",
+            "phone": user.phone_number or "",
+            "email": user.email,
+            "is_accepting_clients": False,
+        },
+    )
+    return provider
 
 
 # ======================================================

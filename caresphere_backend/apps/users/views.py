@@ -1,5 +1,7 @@
 # apps/users/views.py
 
+from django.conf import settings
+from django.core import signing
 from django.db.models import Count
 
 from rest_framework import generics, permissions, status
@@ -9,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
+from .email_verification import TOKEN_SALT, send_verification_email_safely
 
 
 class IsPlatformAdmin(permissions.BasePermission):
@@ -36,6 +39,8 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
+        verification_email_sent = send_verification_email_safely(user)
+
         refresh = RefreshToken.for_user(user)
 
         return Response(
@@ -44,9 +49,54 @@ class RegisterView(generics.CreateAPIView):
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
                 "message": "Registration successful",
+                "verification_email_sent": verification_email_sent,
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class VerifyEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token = request.data.get("token", "")
+        try:
+            payload = signing.loads(
+                token,
+                salt=TOKEN_SALT,
+                max_age=settings.EMAIL_VERIFICATION_MAX_AGE,
+            )
+            user = User.objects.get(
+                pk=payload["user_id"],
+                email__iexact=payload["email"],
+            )
+        except (signing.BadSignature, signing.SignatureExpired, KeyError, User.DoesNotExist):
+            return Response(
+                {"detail": "This verification link is invalid or has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.is_verified:
+            user.is_verified = True
+            user.save(update_fields=["is_verified", "updated_at"])
+
+        return Response({"message": "Email address verified successfully."})
+
+
+class ResendVerificationEmailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.is_verified:
+            return Response({"message": "Your email address is already verified."})
+
+        if not send_verification_email_safely(request.user):
+            return Response(
+                {"detail": "We could not send the verification email. Please try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response({"message": "A new verification email has been sent."})
 
 
 class LoginView(APIView):

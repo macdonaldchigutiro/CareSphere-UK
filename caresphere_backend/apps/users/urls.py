@@ -4,6 +4,8 @@ from .views import (
     RegisterView,
     LoginView,
     UserProfileView,
+    VerifyEmailView,
+    ResendVerificationEmailView,
     AdminDashboardView,
     AdminOperationsView,
     AdminGovernanceView,
@@ -36,6 +38,12 @@ urlpatterns = [
         "profile/",
         UserProfileView.as_view(),
         name="profile",
+    ),
+    path("verify-email/", VerifyEmailView.as_view(), name="verify-email"),
+    path(
+        "verification/resend/",
+        ResendVerificationEmailView.as_view(),
+        name="resend-verification-email",
     ),
     # =========================================================
     # ADMIN READ APIs

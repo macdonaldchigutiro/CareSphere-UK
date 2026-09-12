@@ -32,10 +32,18 @@ import { API_URL } from "../../lib/config";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [isNewAccount, setIsNewAccount] = useState(false);
 
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isNew = params.get("new") === "1";
+    setIsNewAccount(isNew);
+    if (isNew) window.history.replaceState({}, "", window.location.pathname);
+  }, []);
 
   const [savedProvidersCount, setSavedProvidersCount] =
     useState(0);
@@ -727,7 +735,7 @@ export default function DashboardPage() {
 
               <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
 
-                Welcome back,{" "}
+                {isNewAccount ? "Welcome," : "Welcome back,"}{" "}
                 {displayName}.
 
               </h1>

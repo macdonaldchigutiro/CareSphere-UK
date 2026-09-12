@@ -1,6 +1,8 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
+from django.core import mail
+from django.test import override_settings
 
 from apps.care_providers.models import CareProvider, StaffMember
 from apps.users.models import User
@@ -142,3 +144,68 @@ class RoleBoundaryAPITests(TestCase):
             f"/api/care-providers/my-staff/{self.other_staff.id}/"
         )
         self.assertEqual(other_staff_response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class RegistrationAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_provider_registration_creates_linked_draft_profile(self):
+        response = self.client.post(
+            "/api/users/register/",
+            {
+                "email": "new-provider@example.com",
+                "first_name": "Sarah",
+                "last_name": "Thompson",
+                "password": "safe-test-password",
+                "user_type": "provider",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email="new-provider@example.com")
+        provider = CareProvider.objects.get(user=user)
+        self.assertEqual(provider.company_name, "Sarah Thompson")
+        self.assertEqual(provider.email, user.email)
+        self.assertFalse(provider.is_accepting_clients)
+
+    def test_family_registration_does_not_create_provider_profile(self):
+        response = self.client.post(
+            "/api/users/register/",
+            {
+                "email": "new-family@example.com",
+                "first_name": "Freddie",
+                "last_name": "Family",
+                "password": "safe-test-password",
+                "user_type": "family",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email="new-family@example.com")
+        self.assertFalse(CareProvider.objects.filter(user=user).exists())
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_registration_sends_email_and_token_verifies_account(self):
+        response = self.client.post(
+            "/api/users/register/",
+            {
+                "email": "verify-me@example.com",
+                "first_name": "Verify",
+                "last_name": "Me",
+                "password": "safe-test-password",
+                "user_type": "family",
+            },
+            format="json",
+        )
+        self.assertTrue(response.data["verification_email_sent"])
+        self.assertEqual(len(mail.outbox), 1)
+        token = mail.outbox[0].body.split("token=", 1)[1].splitlines()[0]
+
+        verify_response = self.client.post(
+            "/api/users/verify-email/", {"token": token}, format="json"
+        )
+        self.assertEqual(verify_response.status_code, status.HTTP_200_OK)
+        self.assertTrue(User.objects.get(email="verify-me@example.com").is_verified)

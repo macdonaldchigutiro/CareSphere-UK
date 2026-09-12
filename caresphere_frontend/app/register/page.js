@@ -123,9 +123,7 @@ export default function RegisterPage() {
       setSuccess("Account created successfully.");
 
       setTimeout(() => {
-        router.push(
-          getDashboardPath(data.user)
-        );
+        router.push(`${getDashboardPath(data.user)}?new=1`);
       }, 800);
     } catch (err) {
       console.error("Registration error:", err);
