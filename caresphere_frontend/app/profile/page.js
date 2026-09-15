@@ -326,11 +326,17 @@ export default function ProfilePage() {
   const handleResendVerification = async () => {
     setError("");
     setSuccess("");
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
     try {
       setIsResending(true);
       const response = await authFetch(
         `${API_URL}/api/users/verification/resend/`,
-        { method: "POST", headers: { "Content-Type": "application/json" } }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+        }
       );
       if (!response || response.status === 401) {
         goToLogin();
@@ -340,8 +346,13 @@ export default function ProfilePage() {
       if (!response.ok) throw new Error(data.detail);
       setSuccess(data.message);
     } catch (err) {
-      setError(err?.message || "Unable to resend the verification email.");
+      setError(
+        err?.name === "AbortError"
+          ? "Email delivery took too long. Please try again shortly."
+          : err?.message || "Unable to resend the verification email."
+      );
     } finally {
+      window.clearTimeout(timeoutId);
       setIsResending(false);
     }
   };

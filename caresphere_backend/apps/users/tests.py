@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -209,3 +211,30 @@ class RegistrationAPITests(TestCase):
         )
         self.assertEqual(verify_response.status_code, status.HTTP_200_OK)
         self.assertTrue(User.objects.get(email="verify-me@example.com").is_verified)
+
+    @override_settings(
+        RESEND_API_KEY="re_test_key",
+        RESEND_FROM_EMAIL="CareSphere UK <onboarding@resend.dev>",
+    )
+    @patch("apps.users.email_verification.requests.post")
+    def test_registration_uses_resend_when_api_key_is_configured(self, post):
+        post.return_value = Mock()
+
+        response = self.client.post(
+            "/api/users/register/",
+            {
+                "email": "resend-recipient@example.com",
+                "first_name": "Resend",
+                "last_name": "Recipient",
+                "password": "safe-test-password",
+                "user_type": "family",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data["verification_email_sent"])
+        post.assert_called_once()
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual(payload["to"], ["resend-recipient@example.com"])
+        self.assertIn("/verify-email?token=", payload["text"])

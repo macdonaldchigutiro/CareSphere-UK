@@ -313,7 +313,15 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL",
     default="CareSphere UK <noreply@caresphere.uk>",
 )
+RESEND_API_KEY = env("RESEND_API_KEY", default="")
+RESEND_API_URL = env("RESEND_API_URL", default="https://api.resend.com/emails")
+RESEND_FROM_EMAIL = env(
+    "RESEND_FROM_EMAIL",
+    default="CareSphere UK <onboarding@resend.dev>",
+)
+RESEND_TIMEOUT = env.int("RESEND_TIMEOUT", default=10)
