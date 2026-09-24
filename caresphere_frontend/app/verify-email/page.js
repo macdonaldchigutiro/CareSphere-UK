@@ -12,7 +12,9 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
     if (!token) {
-      setStatus("This verification link is incomplete.");
+      queueMicrotask(() => {
+        setStatus("This verification link is incomplete.");
+      });
       return;
     }
 

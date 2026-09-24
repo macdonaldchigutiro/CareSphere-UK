@@ -327,7 +327,10 @@ export default function ProfilePage() {
     setError("");
     setSuccess("");
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+    // Render's free service may need roughly 50 seconds to wake after a period
+    // of inactivity. Keep this request alive long enough for that cold start
+    // plus the email provider call.
+    const timeoutId = window.setTimeout(() => controller.abort(), 75000);
     try {
       setIsResending(true);
       const response = await authFetch(
@@ -348,7 +351,7 @@ export default function ProfilePage() {
     } catch (err) {
       setError(
         err?.name === "AbortError"
-          ? "Email delivery took too long. Please try again shortly."
+          ? "Email delivery is still unavailable. Please try again shortly."
           : err?.message || "Unable to resend the verification email."
       );
     } finally {
