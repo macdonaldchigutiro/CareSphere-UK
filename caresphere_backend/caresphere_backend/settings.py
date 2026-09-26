@@ -304,6 +304,7 @@ EMAIL_VERIFICATION_MAX_AGE = env.int(
     "EMAIL_VERIFICATION_MAX_AGE",
     default=86400,
 )
+PASSWORD_RESET_MAX_AGE = env.int("PASSWORD_RESET_MAX_AGE", default=60 * 60)
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",
     default="django.core.mail.backends.console.EmailBackend",

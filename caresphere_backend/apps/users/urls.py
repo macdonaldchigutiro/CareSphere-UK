@@ -6,6 +6,8 @@ from .views import (
     UserProfileView,
     VerifyEmailView,
     ResendVerificationEmailView,
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
     AdminDashboardView,
     AdminOperationsView,
     AdminGovernanceView,
@@ -44,6 +46,16 @@ urlpatterns = [
         "verification/resend/",
         ResendVerificationEmailView.as_view(),
         name="resend-verification-email",
+    ),
+    path(
+        "password-reset/request/",
+        PasswordResetRequestView.as_view(),
+        name="password-reset-request",
+    ),
+    path(
+        "password-reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="password-reset-confirm",
     ),
     # =========================================================
     # ADMIN READ APIs

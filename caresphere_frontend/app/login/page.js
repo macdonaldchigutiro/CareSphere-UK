@@ -331,12 +331,12 @@ function LoginContent() {
                     Password
                   </label>
 
-                  <button
-                    type="button"
+                  <Link
+                    href="/forgot-password"
                     className="text-sm font-semibold text-[#0F766E]"
                   >
                     Forgot password?
-                  </button>
+                  </Link>
 
                 </div>
 

@@ -238,3 +238,52 @@ class RegistrationAPITests(TestCase):
         payload = post.call_args.kwargs["json"]
         self.assertEqual(payload["to"], ["resend-recipient@example.com"])
         self.assertIn("/verify-email?token=", payload["text"])
+
+
+class PasswordResetAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="provider-reset@example.com",
+            email="provider-reset@example.com",
+            password="old-safe-password",
+            user_type="provider",
+            first_name="Sarah",
+        )
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_password_reset_link_changes_password_and_is_single_use(self):
+        request_response = self.client.post(
+            "/api/users/password-reset/request/",
+            {"email": self.user.email},
+            format="json",
+        )
+        self.assertEqual(request_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 1)
+        token = mail.outbox[0].body.split("token=", 1)[1].splitlines()[0]
+
+        confirm_response = self.client.post(
+            "/api/users/password-reset/confirm/",
+            {"token": token, "password": "new-safe-password-2026"},
+            format="json",
+        )
+        self.assertEqual(confirm_response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("new-safe-password-2026"))
+
+        reused_response = self.client.post(
+            "/api/users/password-reset/confirm/",
+            {"token": token, "password": "another-safe-password-2026"},
+            format="json",
+        )
+        self.assertEqual(reused_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_unknown_email_returns_same_safe_response(self):
+        response = self.client.post(
+            "/api/users/password-reset/request/",
+            {"email": "unknown@example.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 0)

@@ -1,7 +1,9 @@
 # apps/users/views.py
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.core import signing
+from django.core.exceptions import ValidationError
 from django.db.models import Count
 
 from rest_framework import generics, permissions, status
@@ -12,6 +14,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 from .email_verification import TOKEN_SALT, send_verification_email_safely
+from .password_reset import (
+    TOKEN_SALT as PASSWORD_RESET_TOKEN_SALT,
+    send_password_reset_email_safely,
+)
 
 
 class IsPlatformAdmin(permissions.BasePermission):
@@ -97,6 +103,72 @@ class ResendVerificationEmailView(APIView):
             )
 
         return Response({"message": "A new verification email has been sent."})
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = str(request.data.get("email", "")).lower().strip()
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+
+        # Always return the same response so this endpoint cannot be used to
+        # discover which email addresses have CareSphere accounts.
+        if user:
+            send_password_reset_email_safely(user)
+
+        return Response(
+            {
+                "message": (
+                    "If an active CareSphere account exists for that email, "
+                    "a password reset link has been sent."
+                )
+            }
+        )
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token = request.data.get("token", "")
+        password = request.data.get("password", "")
+
+        try:
+            payload = signing.loads(
+                token,
+                salt=PASSWORD_RESET_TOKEN_SALT,
+                max_age=settings.PASSWORD_RESET_MAX_AGE,
+            )
+            user = User.objects.get(
+                pk=payload["user_id"],
+                email__iexact=payload["email"],
+                is_active=True,
+            )
+            if user.password != payload["password_hash"]:
+                raise signing.BadSignature
+        except (
+            signing.BadSignature,
+            signing.SignatureExpired,
+            KeyError,
+            User.DoesNotExist,
+        ):
+            return Response(
+                {"detail": "This password reset link is invalid or has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_password(password, user=user)
+        except ValidationError as error:
+            return Response(
+                {"password": list(error.messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(password)
+        user.save(update_fields=["password", "updated_at"])
+        return Response({"message": "Your password has been reset successfully."})
 
 
 class LoginView(APIView):
