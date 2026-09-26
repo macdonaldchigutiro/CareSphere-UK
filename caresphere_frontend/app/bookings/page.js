@@ -72,6 +72,11 @@ export default function BookingsPage() {
   ] = useState("");
 
   const [
+    bookingActionMessages,
+    setBookingActionMessages,
+  ] = useState({});
+
+  const [
     searchTerm,
     setSearchTerm,
   ] = useState("");
@@ -332,6 +337,13 @@ export default function BookingsPage() {
       setError("");
       setSuccess("");
 
+      setBookingActionMessages(
+        (current) => ({
+          ...current,
+          [bookingId]: null,
+        })
+      );
+
       setActionLoadingId(
         `${bookingId}-${action}`
       );
@@ -388,15 +400,34 @@ export default function BookingsPage() {
           data.message ||
             "Booking updated successfully."
         );
+
+        setBookingActionMessages(
+          (current) => ({
+            ...current,
+            [bookingId]: {
+              type: "success",
+              message:
+                data.message ||
+                "Booking updated successfully.",
+            },
+          })
+        );
       } catch (err) {
         console.error(
           `Booking ${action} error:`,
           err
         );
 
-        setError(
-          err.message ||
-            "We couldn't update this booking."
+        setBookingActionMessages(
+          (current) => ({
+            ...current,
+            [bookingId]: {
+              type: "error",
+              message:
+                err.message ||
+                "We couldn't update this booking.",
+            },
+          })
         );
       } finally {
         setActionLoadingId(
@@ -1234,9 +1265,49 @@ export default function BookingsPage() {
                         "accepted" && (
                         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
 
-                          <p className="text-sm font-semibold text-blue-700">
-                            Request accepted. Confirm when the care arrangement is final.
-                          </p>
+                          <div className="max-w-2xl">
+                            <p className="text-sm font-semibold text-blue-700">
+                              Request accepted. Confirm when the care arrangement is final.
+                            </p>
+
+                            {!booking.assigned_staff && (
+                              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                <p className="font-bold">
+                                  Staff assignment required
+                                </p>
+                                <p className="mt-1">
+                                  Assign an available staff member before confirming this booking.
+                                </p>
+                                <Link
+                                  href="/provider-dashboard"
+                                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-700 px-4 py-2 font-bold text-white hover:bg-amber-800"
+                                >
+                                  <User className="h-4 w-4" />
+                                  Go to staff assignment
+                                </Link>
+                              </div>
+                            )}
+
+                            {bookingActionMessages[
+                              booking.id
+                            ] && (
+                              <div
+                                className={`mt-3 rounded-xl border px-4 py-3 text-sm font-semibold ${
+                                  bookingActionMessages[
+                                    booking.id
+                                  ].type === "error"
+                                    ? "border-red-200 bg-red-50 text-red-700"
+                                    : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                }`}
+                              >
+                                {
+                                  bookingActionMessages[
+                                    booking.id
+                                  ].message
+                                }
+                              </div>
+                            )}
+                          </div>
 
                           <button
                             type="button"
@@ -1248,9 +1319,10 @@ export default function BookingsPage() {
                             }
                             disabled={
                               actionLoadingId !==
-                              null
+                                null ||
+                              !booking.assigned_staff
                             }
-                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white disabled:opacity-60"
+                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
                           >
 
                             {actionLoadingId ===
