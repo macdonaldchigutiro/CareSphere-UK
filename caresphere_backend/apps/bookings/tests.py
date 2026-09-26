@@ -13,6 +13,7 @@ from apps.care_providers.models import (
     CareProvider,
     StaffMember,
 )
+from apps.family.models import CareCircle, CareCircleMember, FamilyNote
 from apps.notifications.models import Notification
 from apps.service_users.models import ServiceUserProfile
 from apps.users.models import User
@@ -219,3 +220,199 @@ class ThreeRoleCareJourneyTests(APITestCase):
         self.client.force_authenticate(self.admin)
         admin_list = self.client.get("/api/bookings/")
         self.assertEqual(admin_list.data["count"], 2)
+
+    def test_family_and_provider_records_are_isolated_across_all_core_endpoints(self):
+        """Protect the object-level boundaries verified in the staging journey."""
+        family_b = User.objects.create_user(
+            username="family-b-security@example.com",
+            email="family-b-security@example.com",
+            password="test-password",
+            user_type="family",
+        )
+        provider_b_user = User.objects.create_user(
+            username="provider-b-security@example.com",
+            email="provider-b-security@example.com",
+            password="test-password",
+            user_type="provider",
+        )
+        provider_b = CareProvider.objects.create(
+            user=provider_b_user,
+            company_name="Provider B Security Ltd",
+            business_type=CareProvider.BusinessType.AGENCY,
+            care_types=[CareProvider.CareType.DOMICILIARY],
+            address_line1="2 Security Street",
+            city="Hemel Hempstead",
+            postcode="HP1 1AA",
+            county="Hertfordshire",
+            phone="01923000002",
+            email=provider_b_user.email,
+            is_verified=True,
+        )
+        recipient_b = ServiceUserProfile.objects.create(
+            managed_by=family_b,
+            first_name="Mary",
+            last_name="Test-B",
+            medical_conditions=["SECURITY TEST FAMILY B"],
+        )
+        booking_a = Booking.objects.create(
+            user=self.family_user,
+            provider=self.provider,
+            service_user=self.care_recipient,
+            care_type="Domiciliary care",
+            start_time=self.start_at,
+            end_time=self.end_at,
+        )
+        booking_b = Booking.objects.create(
+            user=family_b,
+            provider=provider_b,
+            service_user=recipient_b,
+            care_type="Domiciliary care",
+            start_time=self.start_at,
+            end_time=self.end_at,
+        )
+        notification_a = Notification.objects.create(
+            recipient=self.family_user,
+            title="Family A only",
+            message="Test Recipient booking update",
+        )
+        notification_b = Notification.objects.create(
+            recipient=family_b,
+            title="Family B only",
+            message="Mary Test-B booking update",
+        )
+
+        circle_a = CareCircle.objects.create(
+            service_user=self.care_recipient,
+            name="Family A Circle",
+        )
+        circle_b = CareCircle.objects.create(
+            service_user=recipient_b,
+            name="Family B Circle",
+        )
+        member_a = CareCircleMember.objects.create(
+            care_circle=circle_a,
+            user=self.family_user,
+            role=CareCircleMember.MemberRole.PRIMARY,
+            relationship=CareCircleMember.Relationship.CHILD,
+            is_active=True,
+        )
+        member_b = CareCircleMember.objects.create(
+            care_circle=circle_b,
+            user=family_b,
+            role=CareCircleMember.MemberRole.PRIMARY,
+            relationship=CareCircleMember.Relationship.CHILD,
+            is_active=True,
+        )
+        note_a = FamilyNote.objects.create(
+            care_circle=circle_a,
+            author=member_a,
+            title="Family A note",
+            content="Visible only inside Family A's circle.",
+            note_type=FamilyNote.NoteType.GENERAL,
+            privacy_level=FamilyNote.PrivacyLevel.PUBLIC,
+        )
+        note_b = FamilyNote.objects.create(
+            care_circle=circle_b,
+            author=member_b,
+            title="Family B note",
+            content="Visible only inside Family B's circle.",
+            note_type=FamilyNote.NoteType.GENERAL,
+            privacy_level=FamilyNote.PrivacyLevel.PUBLIC,
+        )
+
+        self.client.force_authenticate(self.family_user)
+
+        recipients = self.client.get("/api/service-users/profiles/")
+        self.assertEqual(recipients.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            {item["id"] for item in recipients.data["results"]},
+            {self.care_recipient.id},
+        )
+        self.assertEqual(
+            self.client.get(
+                f"/api/service-users/profiles/{recipient_b.id}/"
+            ).status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        family_bookings = self.client.get("/api/bookings/")
+        self.assertEqual(
+            {item["id"] for item in family_bookings.data["results"]},
+            {str(booking_a.id)},
+        )
+        self.assertEqual(
+            self.client.get(f"/api/bookings/{booking_b.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        notifications = self.client.get("/api/notifications/notifications/")
+        self.assertEqual(
+            {item["id"] for item in notifications.data["results"]},
+            {str(notification_a.id)},
+        )
+        self.assertEqual(
+            self.client.get(
+                f"/api/notifications/notifications/{notification_b.id}/"
+            ).status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        circles = self.client.get("/api/family/circles/")
+        self.assertEqual(
+            {item["id"] for item in circles.data["results"]},
+            {str(circle_a.id)},
+        )
+        self.assertEqual(
+            self.client.get(f"/api/family/circles/{circle_b.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        notes = self.client.get("/api/family/notes/")
+        self.assertEqual(
+            {item["id"] for item in notes.data["results"]},
+            {str(note_a.id)},
+        )
+        self.assertEqual(
+            self.client.get(f"/api/family/notes/{note_b.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        cross_family_booking = self.client.post(
+            "/api/bookings/",
+            {
+                "provider": str(provider_b.id),
+                "service_user": recipient_b.id,
+                "care_type": "Domiciliary care",
+                "frequency": Booking.Frequency.ONE_OFF,
+                "start_time": self.start_at.isoformat(),
+                "end_time": self.end_at.isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(cross_family_booking.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.client.force_authenticate(self.provider_user)
+        provider_a_bookings = self.client.get("/api/bookings/")
+        self.assertEqual(
+            {item["id"] for item in provider_a_bookings.data["results"]},
+            {str(booking_a.id)},
+        )
+        self.assertEqual(
+            self.client.get(f"/api/bookings/{booking_b.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+        self.assertEqual(
+            self.client.post(f"/api/bookings/{booking_b.id}/accept/").status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        self.client.force_authenticate(provider_b_user)
+        provider_b_bookings = self.client.get("/api/bookings/")
+        self.assertEqual(
+            {item["id"] for item in provider_b_bookings.data["results"]},
+            {str(booking_b.id)},
+        )
+        self.assertEqual(
+            self.client.get(f"/api/bookings/{booking_a.id}/").status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
