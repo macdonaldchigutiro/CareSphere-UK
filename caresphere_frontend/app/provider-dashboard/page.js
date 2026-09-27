@@ -1220,11 +1220,11 @@ export default function ProviderDashboardPage() {
     return (
       <main
         className="
+          cs-page
           flex
           min-h-screen
           items-center
           justify-center
-          bg-[#F7FAFC]
         "
       >
         <div
@@ -1265,8 +1265,8 @@ export default function ProviderDashboardPage() {
   return (
     <main
       className="
+        cs-page
         min-h-screen
-        bg-[#F7FAFC]
         text-slate-900
       "
     >
@@ -1278,16 +1278,17 @@ export default function ProviderDashboardPage() {
       <header
         className="
           border-b
-          border-slate-200
-          bg-white/95
-          backdrop-blur
+          border-slate-200/80
+          bg-white/90
+          shadow-[0_6px_24px_rgba(6,27,44,0.05)]
+          backdrop-blur-xl
         "
       >
         <div
           className="
             mx-auto
             flex
-            max-w-7xl
+            max-w-[1560px]
             items-center
             justify-between
             px-5
@@ -1311,9 +1312,12 @@ export default function ProviderDashboardPage() {
                 w-10
                 items-center
                 justify-center
-                rounded-xl
-                bg-[#176B62]
+                rounded-[14px]
+                bg-gradient-to-br
+                from-[#087C76]
+                to-[#16A89D]
                 text-white
+                shadow-[0_8px_22px_rgba(8,124,118,0.25)]
               "
             >
               <HeartHandshake
@@ -1459,7 +1463,7 @@ export default function ProviderDashboardPage() {
       <div
         className="
           mx-auto
-          max-w-7xl
+          max-w-[1560px]
           px-5
           py-8
           lg:px-8
@@ -1473,16 +1477,18 @@ export default function ProviderDashboardPage() {
 
         <section
           className="
+            cs-enter
+            relative
             overflow-hidden
-            rounded-3xl
+            rounded-[28px]
             bg-gradient-to-r
-            from-[#124F49]
-            via-[#176B62]
-            to-[#23837A]
+            from-[#061B2C]
+            via-[#0A3446]
+            to-[#087C76]
             px-6
             py-8
             text-white
-            shadow-sm
+            shadow-[0_22px_60px_rgba(6,27,44,0.18)]
             md:px-9
             md:py-10
           "
@@ -1520,7 +1526,7 @@ export default function ProviderDashboardPage() {
                   "
                 />
 
-                CareSphere Provider
+                Provider operations
               </div>
 
               <h1
@@ -1546,10 +1552,7 @@ export default function ProviderDashboardPage() {
                   md:text-base
                 "
               >
-                Manage new care requests,
-                confirmed bookings and
-                ongoing care from one
-                secure workspace.
+                See what needs attention, assign the right staff and move every care request forward with confidence.
               </p>
             </div>
 
@@ -1567,6 +1570,8 @@ export default function ProviderDashboardPage() {
               <div
                 className="
                   rounded-2xl
+                  border
+                  border-white/10
                   bg-white/10
                   p-4
                   backdrop-blur
@@ -1598,6 +1603,8 @@ export default function ProviderDashboardPage() {
               <div
                 className="
                   rounded-2xl
+                  border
+                  border-white/10
                   bg-white/10
                   p-4
                   backdrop-blur
@@ -1629,6 +1636,8 @@ export default function ProviderDashboardPage() {
               <div
                 className="
                   rounded-2xl
+                  border
+                  border-white/10
                   bg-white/10
                   p-4
                   backdrop-blur
@@ -1660,6 +1669,8 @@ export default function ProviderDashboardPage() {
               <div
                 className="
                   rounded-2xl
+                  border
+                  border-white/10
                   bg-white/10
                   p-4
                   backdrop-blur
@@ -1859,6 +1870,7 @@ export default function ProviderDashboardPage() {
             gap-4
             sm:grid-cols-2
             xl:grid-cols-5
+            cs-enter
           "
         >
 
@@ -1869,7 +1881,7 @@ export default function ProviderDashboardPage() {
               )
             }
             className="
-              rounded-2xl
+              rounded-[20px]
               border
               border-slate-200
               bg-white
@@ -1948,7 +1960,7 @@ export default function ProviderDashboardPage() {
               )
             }
             className="
-              rounded-2xl
+              rounded-[20px]
               border
               border-red-200
               bg-white
@@ -2040,7 +2052,7 @@ export default function ProviderDashboardPage() {
               )
             }
             className="
-              rounded-2xl
+              rounded-[20px]
               border
               border-slate-200
               bg-white
@@ -2121,7 +2133,7 @@ export default function ProviderDashboardPage() {
               )
             }
             className="
-              rounded-2xl
+              rounded-[20px]
               border
               border-slate-200
               bg-white
@@ -2202,7 +2214,7 @@ export default function ProviderDashboardPage() {
               )
             }
             className="
-              rounded-2xl
+              rounded-[20px]
               border
               border-slate-200
               bg-white
@@ -2284,13 +2296,14 @@ export default function ProviderDashboardPage() {
 
         <section
           className="
+            cs-enter
             mt-7
             overflow-hidden
-            rounded-3xl
+            rounded-[24px]
             border
             border-slate-200
             bg-white
-            shadow-sm
+            shadow-[0_12px_38px_rgba(6,27,44,0.07)]
           "
         >
 

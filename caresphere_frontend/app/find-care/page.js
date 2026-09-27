@@ -635,18 +635,18 @@ export default function FindCarePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7FAFC] text-slate-950">
+    <main className="cs-page text-slate-950">
 
       {/* HEADER */}
 
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between px-5 py-4 lg:px-8">
 
           <Link
             href="/"
             className="flex items-center gap-3"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F766E] text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#087C76] to-[#16A89D] text-white shadow-[0_8px_22px_rgba(8,124,118,0.24)]">
               <HeartHandshake className="h-6 w-6" />
             </div>
 
@@ -688,8 +688,10 @@ export default function FindCarePage() {
 
       {/* HERO */}
 
-      <section className="bg-[#071A2B]">
-        <div className="mx-auto max-w-[1500px] px-5 py-14 lg:px-8 lg:py-20">
+      <section className="relative overflow-hidden bg-[#061B2C]">
+        <div aria-hidden="true" className="absolute -right-32 -top-44 h-[34rem] w-[34rem] rounded-full bg-[#16A89D]/20 blur-3xl" />
+        <div aria-hidden="true" className="absolute bottom-0 left-1/3 h-48 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="relative mx-auto max-w-[1500px] px-5 py-14 lg:px-8 lg:py-20">
 
           <div className="max-w-4xl">
 
@@ -698,23 +700,18 @@ export default function FindCarePage() {
               Find care across the UK
             </div>
 
-            <h1 className="mt-5 text-4xl font-black tracking-tight text-white md:text-6xl">
-              Find care that fits
-              <span className="block text-[#6EE7D8]">
-                your needs.
-              </span>
+            <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-[-0.035em] text-white md:text-6xl lg:text-7xl">
+              Find trusted care
+              <span className="block text-[#6EE7D8]">near you.</span>
             </h1>
 
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-              Search care providers by
-              location, specialism,
-              quality, funding and
-              availability.
+              Compare regulated providers, understand why they match and request care with confidence.
             </p>
 
           </div>
 
-          <div className="mt-9 grid max-w-4xl gap-3 md:grid-cols-2">
+          <div className="mt-9 grid max-w-5xl gap-3 rounded-[24px] border border-white/10 bg-white/10 p-3 shadow-2xl backdrop-blur md:grid-cols-[1fr_0.85fr]">
 
             <div className="relative">
 
@@ -729,7 +726,7 @@ export default function FindCarePage() {
                   )
                 }
                 placeholder="Care need, specialism or provider name..."
-                className="w-full rounded-2xl border border-white/10 bg-white py-4 pl-14 pr-5 text-slate-800 outline-none transition focus:ring-4 focus:ring-teal-500/20"
+                className="cs-input w-full bg-white py-4 pl-14 pr-5 outline-none"
               />
 
             </div>
@@ -747,7 +744,7 @@ export default function FindCarePage() {
                   )
                 }
                 placeholder="Town or full postcode, e.g. WD17 1NA"
-                className="w-full rounded-2xl border border-white/10 bg-white py-4 pl-14 pr-5 text-slate-800 outline-none transition focus:ring-4 focus:ring-teal-500/20"
+                className="cs-input w-full bg-white py-4 pl-14 pr-5 outline-none"
               />
 
             </div>
@@ -779,7 +776,7 @@ export default function FindCarePage() {
           {/* FILTERS */}
 
           <aside>
-            <div className="sticky top-6 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="cs-surface sticky top-24 p-6">
 
               <div className="flex items-center gap-3">
 
@@ -1255,7 +1252,7 @@ export default function FindCarePage() {
                           key={
                             provider.id
                           }
-                          className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(15,23,42,0.10)]"
+                          className="cs-card cs-enter overflow-hidden"
                         >
 
                           <div className="p-6">
