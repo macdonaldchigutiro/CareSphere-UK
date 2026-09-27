@@ -32,6 +32,8 @@ body {
   background: var(--cs-canvas);
   color: var(--cs-ink);
   font-family:
+    "Segoe UI Variable",
+    "Aptos",
     Inter,
     ui-sans-serif,
     system-ui,
@@ -41,6 +43,7 @@ body {
     sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  font-optical-sizing: auto;
 }
 
 @keyframes cs-fade-up {

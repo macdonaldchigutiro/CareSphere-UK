@@ -15,34 +15,36 @@ export default function CareSphereLogo({
         aria-label="CareSphere"
         className="h-10 w-10 shrink-0"
       >
-        <defs>
-          <linearGradient id="cs-logo-a" x1="7" y1="5" x2="35" y2="42" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2BD4C5" />
-            <stop offset="1" stopColor="#0B9188" />
-          </linearGradient>
-          <linearGradient id="cs-logo-b" x1="42" y1="8" x2="12" y2="41" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2E87E8" />
-            <stop offset="1" stopColor="#1558B5" />
-          </linearGradient>
-        </defs>
+        <rect x="3" y="3" width="42" height="42" rx="13" fill="#0B9188" />
         <path
-          d="M23.8 4.5c-7.6 0-13.9 4.7-16.5 11.3-1.2 3 .3 6.3 3.2 7.5 2.9 1.1 6.2-.3 7.4-3.2 1-2.5 3.2-4.2 5.9-4.2 2 0 3.9.9 5.1 2.5l8.2-7.3C33.8 7 29.1 4.5 23.8 4.5Z"
-          fill="url(#cs-logo-a)"
+          d="M24 37.2S11.2 29.6 11.2 20.1c0-5 3.2-8.3 7.6-8.3 2.5 0 4.3 1.2 5.2 2.8.9-1.6 2.7-2.8 5.2-2.8 4.4 0 7.6 3.3 7.6 8.3C36.8 29.6 24 37.2 24 37.2Z"
+          fill="none"
+          stroke="#F7FFFD"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
-          d="M39.2 9.8a5.7 5.7 0 0 0-8 .7l-5.3 6.1a6.4 6.4 0 0 1 1.8 7.6l9.5 5.5c4.5-7.8 3.5-15.2 2-19.9Z"
-          fill="url(#cs-logo-b)"
+          d="m16.8 22.2 4.4 4.1a4 4 0 0 0 5.6 0l4.4-4.1"
+          fill="none"
+          stroke="#F7FFFD"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
-          d="M37.6 29.1a5.7 5.7 0 0 0-7.8-2.1c-1.8 1.1-3.7 2.6-6 3.7-3.1 1.5-6.8-.1-7.9-3.4L5.5 30.8C8.2 39 15.3 43.5 23.7 43.5c6.3 0 11.5-3.2 15.8-6.7a5.7 5.7 0 0 0-1.9-7.7Z"
-          fill="url(#cs-logo-a)"
+          d="m20.2 21 3.8 3.6 3.8-3.6"
+          fill="none"
+          stroke="#66E2D6"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <circle cx="23.8" cy="23.9" r="5.2" fill="#F7FFFD" />
       </svg>
 
       {!compact && (
         <span className="min-w-0">
-          <span className={`block whitespace-nowrap text-lg font-black leading-none tracking-[-0.025em] ${ink}`}>
+          <span className={`block whitespace-nowrap text-lg font-extrabold leading-none tracking-[-0.02em] ${ink}`}>
             CareSphere{context === "public" ? " UK" : ""}
           </span>
           <span className={`mt-1 block whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.15em] ${sub}`}>

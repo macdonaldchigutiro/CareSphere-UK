@@ -1275,7 +1275,7 @@ export default function ProviderDashboardPage() {
         <header className="cs-enter mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-bold text-[#087C76]">{getProviderName()}</p>
-            <h1 className="mt-1 text-3xl font-black tracking-[-0.03em] text-[#0A2035]">
+            <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.025em] text-[#0A2035]">
               {isNewAccount ? "Welcome" : "Good to see you"}
             </h1>
             <p className="mt-1 text-sm text-slate-500">Here&apos;s what needs attention across your care service.</p>
@@ -1301,7 +1301,7 @@ export default function ProviderDashboardPage() {
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-black text-[#0A2035]">Today&apos;s service health</p>
+                <p className="font-bold text-[#0A2035]">Today&apos;s service health</p>
                 <p className="mt-1 text-xs text-slate-500">Live operational overview</p>
               </div>
               <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700">
@@ -1326,7 +1326,7 @@ export default function ProviderDashboardPage() {
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-black text-[#0A2035]">Booking progress</p>
+                <p className="font-bold text-[#0A2035]">Booking progress</p>
                 <p className="mt-1 text-xs text-slate-500">Across the current care journey</p>
               </div>
               <span className="text-xs font-bold text-slate-400">{bookings.length} total</span>
@@ -1348,13 +1348,13 @@ export default function ProviderDashboardPage() {
           </article>
 
           <article className="cs-surface bg-gradient-to-br from-[#EDFBF7] to-white p-5">
-            <p className="font-black text-[#0A2035]">Team readiness</p>
+            <p className="font-bold text-[#0A2035]">Team readiness</p>
             <div className="mt-5 flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full border-[7px] border-[#32C7B6] bg-white text-xl font-black text-[#087C76]">
                 {staffMembers.length}
               </div>
               <div>
-                <p className="text-sm font-black text-[#0A2035]">Active care staff</p>
+                <p className="text-sm font-bold text-[#0A2035]">Active care staff</p>
                 <Link href="/provider-staff" className="mt-2 inline-block text-xs font-bold text-[#087C76] underline underline-offset-4">Manage team →</Link>
               </div>
             </div>

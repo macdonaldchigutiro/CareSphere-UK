@@ -112,7 +112,7 @@ export default function WorkspaceNavigation() {
             <CareSphereLogo light context="Provider" className="[&>svg]:h-11 [&>svg]:w-11" />
           </Link>
 
-          <nav aria-label="Care company workspace" className="flex-1 space-y-1.5 px-4 py-6">
+          <nav aria-label="Care company workspace" className="flex-1 space-y-2 px-4 py-6">
             {items.map(({ label, href, icon: Icon }) => {
               const active = pathMatches(pathname, href);
               return (
@@ -120,7 +120,7 @@ export default function WorkspaceNavigation() {
                   key={href}
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-bold transition ${
+                  className={`flex min-h-11 items-center gap-3.5 rounded-xl px-4 text-sm font-semibold transition ${
                     active
                       ? "bg-[#123B55] text-white shadow-[inset_3px_0_0_#2BD4C5]"
                       : "text-slate-300 hover:bg-white/8 hover:text-white"
