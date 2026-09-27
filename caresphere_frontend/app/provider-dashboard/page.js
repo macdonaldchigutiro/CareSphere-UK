@@ -12,7 +12,6 @@ import {
   Clock3,
   HeartHandshake,
   Loader2,
-  LogOut,
   Mail,
   MessageSquareText,
   Play,
@@ -25,7 +24,6 @@ import {
 
 import {
   authFetch,
-  clearAuthSession,
   createLoginUrl,
   getDashboardPath,
   getAuthStorage,
@@ -958,18 +956,6 @@ export default function ProviderDashboardPage() {
 
 
   // ======================================================
-  // SIGN OUT
-  // ======================================================
-
-  const handleSignOut =
-    () => {
-      clearAuthSession();
-
-      router.replace("/");
-    };
-
-
-  // ======================================================
   // DISPLAY HELPERS
   // ======================================================
 
@@ -1270,195 +1256,6 @@ export default function ProviderDashboardPage() {
         text-slate-900
       "
     >
-
-      {/* ==================================================
-          TOP NAVIGATION
-      ================================================== */}
-
-      <header
-        className="
-          border-b
-          border-slate-200/80
-          bg-white/90
-          shadow-[0_6px_24px_rgba(6,27,44,0.05)]
-          backdrop-blur-xl
-        "
-      >
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-[1560px]
-            items-center
-            justify-between
-            px-5
-            py-4
-            lg:px-8
-          "
-        >
-
-          <Link
-            href="/provider-dashboard"
-            className="
-              flex
-              items-center
-              gap-3
-            "
-          >
-            <div
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-[14px]
-                bg-gradient-to-br
-                from-[#087C76]
-                to-[#16A89D]
-                text-white
-                shadow-[0_8px_22px_rgba(8,124,118,0.25)]
-              "
-            >
-              <HeartHandshake
-                className="
-                  h-5
-                  w-5
-                "
-              />
-            </div>
-
-            <div>
-              <div
-                className="
-                  text-lg
-                  font-bold
-                  tracking-tight
-                  text-slate-900
-                "
-              >
-                CareSphere
-              </div>
-
-              <div
-                className="
-                  text-xs
-                  font-medium
-                  text-slate-500
-                "
-              >
-                Provider Workspace
-              </div>
-            </div>
-          </Link>
-
-
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
-
-            <Link
-              href="/notifications"
-              className="
-                relative
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-slate-200
-                bg-white
-                text-slate-600
-                transition
-                hover:bg-slate-50
-                hover:text-slate-900
-              "
-            >
-              <Bell
-                className="
-                  h-5
-                  w-5
-                "
-              />
-
-              {unreadNotifications >
-                0 && (
-                <span
-                  className="
-                    absolute
-                    -right-1
-                    -top-1
-                    flex
-                    h-5
-                    min-w-5
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-red-500
-                    px-1
-                    text-[10px]
-                    font-bold
-                    text-white
-                  "
-                >
-                  {unreadNotifications >
-                  99
-                    ? "99+"
-                    : unreadNotifications}
-                </span>
-              )}
-            </Link>
-
-
-            <button
-              onClick={
-                handleSignOut
-              }
-              className="
-                flex
-                h-10
-                items-center
-                gap-2
-                rounded-xl
-                border
-                border-slate-200
-                bg-white
-                px-3
-                text-sm
-                font-semibold
-                text-slate-600
-                transition
-                hover:bg-slate-50
-                hover:text-slate-900
-              "
-            >
-              <LogOut
-                className="
-                  h-4
-                  w-4
-                "
-              />
-
-              <span
-                className="
-                  hidden
-                  sm:inline
-                "
-              >
-                Sign out
-              </span>
-            </button>
-
-          </div>
-        </div>
-      </header>
-
 
       <div
         className="
