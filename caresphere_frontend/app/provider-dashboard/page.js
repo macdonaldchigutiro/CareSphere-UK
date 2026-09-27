@@ -987,6 +987,34 @@ export default function ProviderDashboardPage() {
     };
 
 
+  const getInitials =
+    (name) =>
+      String(name || "Care recipient")
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("");
+
+
+  const getAvatarClasses =
+    (name) => {
+      const palettes = [
+        "bg-teal-100 text-teal-800",
+        "bg-blue-100 text-blue-800",
+        "bg-violet-100 text-violet-800",
+        "bg-amber-100 text-amber-800",
+        "bg-rose-100 text-rose-800",
+      ];
+      const score = Array.from(String(name || "")).reduce(
+        (total, character) => total + character.charCodeAt(0),
+        0
+      );
+
+      return palettes[score % palettes.length];
+    };
+
+
   const formatDate =
     (value) => {
       if (!value) {
@@ -1301,8 +1329,8 @@ export default function ProviderDashboardPage() {
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-bold text-[#0A2035]">Today&apos;s service health</p>
-                <p className="mt-1 text-xs text-slate-500">Live operational overview</p>
+                <p className="font-bold text-[#0A2035]">Today&apos;s operations</p>
+                <p className="mt-1 text-xs text-slate-500">Current care activity</p>
               </div>
               <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live
@@ -1331,33 +1359,47 @@ export default function ProviderDashboardPage() {
               </div>
               <span className="text-xs font-bold text-slate-400">{bookings.length} total</span>
             </div>
-            <div className="mt-7 flex items-start">
-              {[
-                ["Requested", pendingBookings.length],
-                ["Confirmed", confirmedBookings.length],
-                ["In progress", inProgressBookings.length],
-                ["Completed", completedBookings.length],
-              ].map(([label, value], index, stages) => (
-                <div key={label} className="relative flex flex-1 flex-col items-center text-center">
-                  {index < stages.length - 1 && <span className="absolute left-1/2 top-3 h-0.5 w-full bg-teal-200" />}
-                  <span className="relative z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#0B9188] text-xs font-black text-white shadow-sm">{value}</span>
-                  <span className="mt-2 text-[10px] font-bold leading-4 text-slate-500">{label}</span>
-                </div>
-              ))}
-            </div>
+            {bookings.length === 0 ? (
+              <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-4">
+                <p className="text-sm font-semibold text-[#0A2035]">Ready for your first care request</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">Keep your availability current so families can request suitable care.</p>
+                <Link href="/provider-availability" className="mt-3 inline-flex text-xs font-bold text-[#087C76]">Update availability →</Link>
+              </div>
+            ) : (
+              <div className="mt-7 flex items-start">
+                {[
+                  ["Requested", pendingBookings.length, "bg-amber-500"],
+                  ["Confirmed", confirmedBookings.length, "bg-blue-500"],
+                  ["In progress", inProgressBookings.length, "bg-[#0B9188]"],
+                  ["Completed", completedBookings.length, "bg-emerald-500"],
+                ].map(([label, value, colour], index, stages) => (
+                  <div key={label} className="relative flex flex-1 flex-col items-center text-center">
+                    {index < stages.length - 1 && <span className="absolute left-1/2 top-3 h-0.5 w-full bg-slate-200" />}
+                    <span className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm ${colour}`}>{value}</span>
+                    <span className="mt-2 text-[10px] font-bold leading-4 text-slate-500">{label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
 
-          <article className="cs-surface bg-gradient-to-br from-[#EDFBF7] to-white p-5">
+          <article className="cs-surface p-5">
             <p className="font-bold text-[#0A2035]">Team readiness</p>
-            <div className="mt-5 flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-[7px] border-[#32C7B6] bg-white text-xl font-black text-[#087C76]">
-                {staffMembers.length}
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500">Team members</span>
+                <span className="font-bold text-[#0A2035]">{staffMembers.length}</span>
               </div>
-              <div>
-                <p className="text-sm font-bold text-[#0A2035]">Active care staff</p>
-                <Link href="/provider-staff" className="mt-2 inline-block text-xs font-bold text-[#087C76] underline underline-offset-4">Manage team →</Link>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500">Active bookings</span>
+                <span className="font-bold text-emerald-700">{activeBookings.length}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500">Uncovered visits</span>
+                <span className={`font-bold ${unassignedBookings.length ? "text-red-700" : "text-slate-700"}`}>{unassignedBookings.length}</span>
               </div>
             </div>
+            <Link href="/provider-staff" className="mt-4 inline-flex text-xs font-bold text-[#087C76]">Manage team →</Link>
           </article>
         </section>
 
@@ -2408,7 +2450,7 @@ export default function ProviderDashboardPage() {
                   text-slate-900
                 "
               >
-                No bookings found
+                {activeFilter === "all" ? "No care requests yet" : "Nothing in this view"}
               </h3>
 
               <p
@@ -2421,10 +2463,9 @@ export default function ProviderDashboardPage() {
                   text-slate-500
                 "
               >
-                New care requests
-                assigned to your
-                provider account will
-                appear here.
+                {activeFilter === "all"
+                  ? "Your workspace is ready. New requests from families will appear here when they match your services and availability."
+                  : "There are no bookings matching this status or search. Try another filter or return to all bookings."}
               </p>
 
               {activeFilter !==
@@ -2448,6 +2489,11 @@ export default function ProviderDashboardPage() {
                 >
                   View all bookings
                 </button>
+              )}
+              {activeFilter === "all" && (
+                <Link href="/provider-availability" className="mt-5 inline-flex rounded-xl bg-[#176B62] px-4 py-2.5 text-sm font-semibold text-white">
+                  Review availability
+                </Link>
               )}
             </div>
           ) : (
@@ -2505,7 +2551,7 @@ export default function ProviderDashboardPage() {
                           "
                         >
                           <div
-                            className="
+                            className={`
                               hidden
                               h-12
                               w-12
@@ -2513,17 +2559,14 @@ export default function ProviderDashboardPage() {
                               items-center
                               justify-center
                               rounded-2xl
-                              bg-[#EAF5F3]
-                              text-[#176B62]
+                              text-sm
+                              font-bold
                               sm:flex
-                            "
+                              ${getAvatarClasses(recipientName)}
+                            `}
+                            aria-label={`${recipientName} initials`}
                           >
-                            <User
-                              className="
-                                h-5
-                                w-5
-                              "
-                            />
+                            {getInitials(recipientName)}
                           </div>
 
 
