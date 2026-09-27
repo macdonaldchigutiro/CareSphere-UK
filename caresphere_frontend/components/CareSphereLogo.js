@@ -1,3 +1,5 @@
+import { HeartHandshake } from "lucide-react";
+
 export default function CareSphereLogo({
   compact = false,
   context,
@@ -9,38 +11,9 @@ export default function CareSphereLogo({
 
   return (
     <span className={`inline-flex items-center gap-3 ${className}`}>
-      <svg
-        viewBox="0 0 48 48"
-        role="img"
-        aria-label="CareSphere"
-        className="h-10 w-10 shrink-0"
-      >
-        <rect x="3" y="3" width="42" height="42" rx="13" fill="#0B9188" />
-        <path
-          d="M24 37.2S11.2 29.6 11.2 20.1c0-5 3.2-8.3 7.6-8.3 2.5 0 4.3 1.2 5.2 2.8.9-1.6 2.7-2.8 5.2-2.8 4.4 0 7.6 3.3 7.6 8.3C36.8 29.6 24 37.2 24 37.2Z"
-          fill="none"
-          stroke="#F7FFFD"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="m16.8 22.2 4.4 4.1a4 4 0 0 0 5.6 0l4.4-4.1"
-          fill="none"
-          stroke="#F7FFFD"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="m20.2 21 3.8 3.6 3.8-3.6"
-          fill="none"
-          stroke="#66E2D6"
-          strokeWidth="2.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#087C76] to-[#16A89D] text-white shadow-[0_8px_22px_rgba(8,124,118,0.24)]">
+        <HeartHandshake className="h-6 w-6" strokeWidth={2.2} aria-hidden="true" />
+      </span>
 
       {!compact && (
         <span className="min-w-0">

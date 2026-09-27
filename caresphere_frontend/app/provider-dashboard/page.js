@@ -1318,9 +1318,15 @@ export default function ProviderDashboardPage() {
                 className="cs-input w-80 py-2 pl-10 pr-4 text-sm outline-none"
               />
             </label>
-            <div className="flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm">
+            <div className="flex min-h-12 items-center gap-2 px-1 text-sm font-semibold text-slate-600">
               <CalendarDays className="h-4 w-4 text-[#087C76]" />
-              Today
+              <time suppressHydrationWarning>
+                {new Intl.DateTimeFormat("en-GB", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                }).format(new Date())}
+              </time>
             </div>
           </div>
         </header>
