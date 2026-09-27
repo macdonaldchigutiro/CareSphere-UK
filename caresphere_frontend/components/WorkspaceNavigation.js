@@ -15,6 +15,7 @@ import {
   User,
   Users,
 } from "lucide-react";
+import CareSphereLogo from "./CareSphereLogo";
 
 import {
   getDashboardPath,
