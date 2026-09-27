@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   CalendarDays,
+  ChevronLeft,
   HeartHandshake,
   Home,
   Search,
+  Settings,
   Star,
   User,
   Users,
@@ -79,6 +81,14 @@ export default function WorkspaceNavigation() {
     };
   }, [pathname]);
 
+  const roleHome = user ? getDashboardPath(user) : null;
+  const isProvider = roleHome === "/provider-dashboard";
+
+  useEffect(() => {
+    document.body.classList.toggle("cs-provider-workspace", isProvider);
+    return () => document.body.classList.remove("cs-provider-workspace");
+  }, [isProvider]);
+
   const isWorkspacePath = WORKSPACE_PATHS.some((path) =>
     pathMatches(pathname, path)
   );
@@ -87,14 +97,72 @@ export default function WorkspaceNavigation() {
     return null;
   }
 
-  const roleHome = getDashboardPath(user);
-
   if (roleHome === "/admin-dashboard") {
     return null;
   }
 
-  const isProvider = roleHome === "/provider-dashboard";
   const items = isProvider ? PROVIDER_ITEMS : FAMILY_ITEMS;
+
+  if (isProvider) {
+    return (
+      <>
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col bg-[#061B2C] text-white shadow-2xl lg:flex">
+          <Link href="/provider-dashboard" className="border-b border-white/10 px-6 py-6">
+            <CareSphereLogo light context="Provider" className="[&>svg]:h-11 [&>svg]:w-11" />
+          </Link>
+
+          <nav aria-label="Care company workspace" className="flex-1 space-y-1.5 px-4 py-6">
+            {items.map(({ label, href, icon: Icon }) => {
+              const active = pathMatches(pathname, href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-bold transition ${
+                    active
+                      ? "bg-[#123B55] text-white shadow-[inset_3px_0_0_#2BD4C5]"
+                      : "text-slate-300 hover:bg-white/8 hover:text-white"
+                  }`}
+                >
+                  <Icon className={`h-[18px] w-[18px] ${active ? "text-[#66E2D6]" : "text-slate-400"}`} />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="space-y-1 border-t border-white/10 p-4">
+            <Link href="/provider-profile" className="flex min-h-11 items-center gap-3 rounded-xl px-4 text-sm font-bold text-slate-300 transition hover:bg-white/8 hover:text-white">
+              <Settings className="h-[18px] w-[18px]" />
+              Settings
+            </Link>
+            <button type="button" aria-label="Collapse navigation" className="flex min-h-10 w-full items-center justify-between rounded-xl px-4 text-xs font-semibold text-slate-400 hover:bg-white/8 hover:text-white">
+              Collapse
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </div>
+        </aside>
+
+        <nav aria-label="Care company workspace" className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl lg:hidden">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <Link href="/provider-dashboard" className="mr-2 shrink-0">
+              <CareSphereLogo compact />
+            </Link>
+            {items.map(({ label, href, icon: Icon }) => {
+              const active = pathMatches(pathname, href);
+              return (
+                <Link key={href} href={href} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold ${active ? "bg-[#E8F8F4] text-[#087C76]" : "text-slate-600"}`}>
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </>
+    );
+  }
 
   return (
     <nav

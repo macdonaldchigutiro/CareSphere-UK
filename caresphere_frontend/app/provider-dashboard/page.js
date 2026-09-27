@@ -1272,8 +1272,98 @@ export default function ProviderDashboardPage() {
             WELCOME
         ================================================== */}
 
+        <header className="cs-enter mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-bold text-[#087C76]">{getProviderName()}</p>
+            <h1 className="mt-1 text-3xl font-black tracking-[-0.03em] text-[#0A2035]">
+              {isNewAccount ? "Welcome" : "Good to see you"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">Here&apos;s what needs attention across your care service.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="relative hidden xl:block">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search people, staff or bookings..."
+                className="cs-input w-80 py-2 pl-10 pr-4 text-sm outline-none"
+              />
+            </label>
+            <div className="flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm">
+              <CalendarDays className="h-4 w-4 text-[#087C76]" />
+              Today
+            </div>
+          </div>
+        </header>
+
+        <section className="cs-enter grid gap-4 xl:grid-cols-[1.15fr_1fr_0.72fr]">
+          <article className="cs-surface p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-black text-[#0A2035]">Today&apos;s service health</p>
+                <p className="mt-1 text-xs text-slate-500">Live operational overview</p>
+              </div>
+              <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Live
+              </span>
+            </div>
+            <div className="mt-6 grid grid-cols-2 divide-x divide-y divide-slate-100 sm:grid-cols-4 sm:divide-y-0">
+              {[
+                [activeBookings.length, "Active", "in_progress", "text-emerald-700", "bg-emerald-100"],
+                [pendingBookings.length, "New", "pending", "text-amber-700", "bg-amber-100"],
+                [unassignedBookings.length, "Unassigned", "unassigned", "text-red-700", "bg-red-100"],
+                [completedBookings.length, "Completed", "completed", "text-blue-700", "bg-blue-100"],
+              ].map(([value, label, filter, colour, background]) => (
+                <button key={label} type="button" onClick={() => setActiveFilter(filter)} className="px-3 py-3 text-left first:pl-0">
+                  <span className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-sm font-black ${colour} ${background}`}>{value}</span>
+                  <span className="mt-2 block text-xs font-bold text-slate-600">{label}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="cs-surface p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-black text-[#0A2035]">Booking progress</p>
+                <p className="mt-1 text-xs text-slate-500">Across the current care journey</p>
+              </div>
+              <span className="text-xs font-bold text-slate-400">{bookings.length} total</span>
+            </div>
+            <div className="mt-7 flex items-start">
+              {[
+                ["Requested", pendingBookings.length],
+                ["Confirmed", confirmedBookings.length],
+                ["In progress", inProgressBookings.length],
+                ["Completed", completedBookings.length],
+              ].map(([label, value], index, stages) => (
+                <div key={label} className="relative flex flex-1 flex-col items-center text-center">
+                  {index < stages.length - 1 && <span className="absolute left-1/2 top-3 h-0.5 w-full bg-teal-200" />}
+                  <span className="relative z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#0B9188] text-xs font-black text-white shadow-sm">{value}</span>
+                  <span className="mt-2 text-[10px] font-bold leading-4 text-slate-500">{label}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="cs-surface bg-gradient-to-br from-[#EDFBF7] to-white p-5">
+            <p className="font-black text-[#0A2035]">Team readiness</p>
+            <div className="mt-5 flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-[7px] border-[#32C7B6] bg-white text-xl font-black text-[#087C76]">
+                {staffMembers.length}
+              </div>
+              <div>
+                <p className="text-sm font-black text-[#0A2035]">Active care staff</p>
+                <Link href="/provider-staff" className="mt-2 inline-block text-xs font-bold text-[#087C76] underline underline-offset-4">Manage team →</Link>
+              </div>
+            </div>
+          </article>
+        </section>
+
         <section
           className="
+            hidden
             cs-enter
             relative
             overflow-hidden
@@ -1662,6 +1752,7 @@ export default function ProviderDashboardPage() {
 
         <section
           className="
+            hidden
             mt-7
             grid
             gap-4

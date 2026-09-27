@@ -126,6 +126,12 @@ body {
   animation: cs-fade-up 420ms ease both;
 }
 
+@media (min-width: 1024px) {
+  body.cs-provider-workspace {
+    padding-left: 248px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
