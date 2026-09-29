@@ -81,6 +81,11 @@ export default function BookingsPage() {
     setSearchTerm,
   ] = useState("");
 
+  const [
+    statusFilter,
+    setStatusFilter,
+  ] = useState("all");
+
 
   // ======================================================
   // USER TYPE
@@ -448,12 +453,22 @@ export default function BookingsPage() {
           .trim()
           .toLowerCase();
 
-      if (!query) {
-        return bookings;
-      }
-
       return bookings.filter(
         (booking) => {
+          const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "active"
+              ? ["confirmed", "in_progress"].includes(booking.status)
+              : booking.status === statusFilter);
+
+          if (!matchesStatus) {
+            return false;
+          }
+
+          if (!query) {
+            return true;
+          }
+
           const searchable = [
             booking.provider_name,
             booking.provider_city,
@@ -479,6 +494,7 @@ export default function BookingsPage() {
     }, [
       bookings,
       searchTerm,
+      statusFilter,
     ]);
 
 
@@ -671,11 +687,11 @@ export default function BookingsPage() {
   // ======================================================
 
   return (
-    <main className="min-h-screen bg-[#F7FAFC] text-slate-950">
+    <main className={`${isProvider ? "cs-page" : "min-h-screen bg-[#F7FAFC]"} text-slate-950`}>
 
       {/* HEADER */}
 
-      <header className="border-b border-slate-200 bg-white">
+      {!isProvider && <header className="border-b border-slate-200 bg-white">
 
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 lg:px-8">
 
@@ -723,22 +739,22 @@ export default function BookingsPage() {
 
         </div>
 
-      </header>
+      </header>}
 
 
       {/* CONTENT */}
 
-      <div className="mx-auto max-w-[1400px] px-5 py-10 lg:px-8">
+      <div className={`mx-auto ${isProvider ? "max-w-[1560px] py-8 lg:py-10" : "max-w-[1400px] py-10"} px-5 lg:px-8`}>
 
         {/* HERO */}
 
-        <section className="overflow-hidden rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12">
+        <section className={isProvider ? "cs-enter" : "overflow-hidden rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12"}>
 
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
 
-            <div>
+            <div className={isProvider ? "w-full" : ""}>
 
-              <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#6EE7D8]">
+              <p className={isProvider ? "text-sm font-bold text-[#087C76]" : "text-sm font-bold uppercase tracking-[0.16em] text-[#6EE7D8]"}>
 
                 {isProvider
                   ? "Care enquiries"
@@ -746,18 +762,18 @@ export default function BookingsPage() {
 
               </p>
 
-              <h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
+              <h1 className={isProvider ? "mt-1 text-3xl font-extrabold tracking-[-0.025em] text-[#0A2035]" : "mt-3 text-4xl font-black tracking-tight md:text-5xl"}>
 
                 {isProvider
-                  ? "Manage incoming care requests."
+                  ? "Bookings"
                   : "Your care requests and bookings."}
 
               </h1>
 
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+              <p className={isProvider ? "mt-1 max-w-2xl text-sm text-slate-500" : "mt-4 max-w-2xl text-lg leading-8 text-slate-300"}>
 
                 {isProvider
-                  ? "Review requests, confirm arrangements, start care and record completed bookings."
+                  ? "Review enquiries, assign staff and move every booking safely through the care journey."
                   : "Track your care requests from enquiry through to confirmed, active and completed care."}
 
               </p>
@@ -815,6 +831,9 @@ export default function BookingsPage() {
               pendingCount
             }
             text="Waiting for review"
+            tone="amber"
+            active={statusFilter === "pending"}
+            onClick={isProvider ? () => setStatusFilter(statusFilter === "pending" ? "all" : "pending") : undefined}
           />
 
           <SummaryCard
@@ -823,6 +842,9 @@ export default function BookingsPage() {
               acceptedCount
             }
             text="Provider has accepted"
+            tone="blue"
+            active={statusFilter === "accepted"}
+            onClick={isProvider ? () => setStatusFilter(statusFilter === "accepted" ? "all" : "accepted") : undefined}
           />
 
           <SummaryCard
@@ -831,6 +853,9 @@ export default function BookingsPage() {
               activeCount
             }
             text="Confirmed or in progress"
+            tone="teal"
+            active={statusFilter === "active"}
+            onClick={isProvider ? () => setStatusFilter(statusFilter === "active" ? "all" : "active") : undefined}
           />
 
           <SummaryCard
@@ -839,6 +864,9 @@ export default function BookingsPage() {
               completedCount
             }
             text="Finished care bookings"
+            tone="slate"
+            active={statusFilter === "completed"}
+            onClick={isProvider ? () => setStatusFilter(statusFilter === "completed" ? "all" : "completed") : undefined}
           />
 
         </section>
@@ -846,7 +874,7 @@ export default function BookingsPage() {
 
         {/* SEARCH */}
 
-        <section className="mt-8">
+        <section className={isProvider ? "cs-surface mt-6 p-5" : "mt-8"}>
 
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 
@@ -860,7 +888,7 @@ export default function BookingsPage() {
 
               </p>
 
-              <h2 className="mt-2 text-2xl font-black tracking-tight">
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-[#0A2035]">
 
                 {bookings.length ===
                 1
@@ -896,12 +924,37 @@ export default function BookingsPage() {
                     ? "Search enquiries..."
                     : "Search bookings..."
                 }
-                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 outline-none transition focus:border-[#0F766E] focus:ring-4 focus:ring-teal-100"
+                className="cs-input w-full py-3.5 pl-12 pr-4 outline-none"
               />
 
             </div>
 
           </div>
+
+          {isProvider && (
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4" aria-label="Filter bookings by status">
+              {[
+                ["all", "All"],
+                ["pending", "New"],
+                ["accepted", "Accepted"],
+                ["active", "Active care"],
+                ["completed", "Completed"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStatusFilter(value)}
+                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                    statusFilter === value
+                      ? "bg-[#0A2035] text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
         </section>
 
@@ -910,7 +963,7 @@ export default function BookingsPage() {
 
         {filteredBookings.length ===
           0 && (
-          <section className="mt-8 rounded-[30px] border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+          <section className={`${isProvider ? "cs-surface" : "rounded-[30px] border border-slate-200 bg-white shadow-sm"} mt-8 px-6 py-16 text-center`}>
 
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 text-[#0F766E]">
 
@@ -979,7 +1032,7 @@ export default function BookingsPage() {
                     key={
                       booking.id
                     }
-                    className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)] md:p-7"
+                    className={`${isProvider ? "cs-card" : "rounded-[28px] border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.05)]"} p-6 md:p-7`}
                   >
 
                     {/* TOP */}
@@ -1598,23 +1651,52 @@ function SummaryCard({
   title,
   value,
   text,
+  tone = "teal",
+  active = false,
+  onClick,
 }) {
+  const tones = {
+    amber: "bg-amber-100 text-amber-700",
+    blue: "bg-blue-100 text-blue-700",
+    teal: "bg-emerald-100 text-emerald-700",
+    slate: "bg-slate-100 text-slate-700",
+  };
+
+  const Element = onClick ? "button" : "div";
+
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+    <Element
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
+      aria-pressed={onClick ? active : undefined}
+      className={`cs-surface p-5 text-left transition ${
+        onClick ? "hover:-translate-y-0.5 hover:border-teal-300" : ""
+      } ${active ? "border-[#0B9188] ring-4 ring-teal-100" : ""}`}
+    >
 
-      <p className="text-sm font-semibold text-slate-500">
-        {title}
-      </p>
+      <div className="flex items-start justify-between gap-3">
 
-      <p className="mt-2 text-3xl font-black text-slate-950">
-        {value}
-      </p>
+        <div>
+
+          <p className="text-sm font-semibold text-slate-500">
+            {title}
+          </p>
+
+          <p className="mt-2 text-3xl font-black text-[#0A2035]">
+            {value}
+          </p>
+
+        </div>
+
+        <span className={`mt-1 h-3 w-3 rounded-full ${tones[tone] || tones.teal}`} aria-hidden="true" />
+
+      </div>
 
       <p className="mt-2 text-sm text-slate-500">
         {text}
       </p>
 
-    </div>
+    </Element>
   );
 }
 
