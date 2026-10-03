@@ -557,6 +557,68 @@ export default function ProviderDashboardPage() {
       [unassignedBookings]
     );
 
+  const next72HourBookings =
+    useMemo(() => {
+      const now = Date.now();
+      const horizon = now + 72 * 60 * 60 * 1000;
+
+      return bookings.filter((booking) => {
+        if (!booking.start_time) return false;
+        if (!["accepted", "confirmed", "in_progress"].includes(booking.status)) {
+          return false;
+        }
+
+        const start = new Date(booking.start_time).getTime();
+        return !Number.isNaN(start) && start >= now && start <= horizon;
+      });
+    }, [bookings]);
+
+  const next72HourUncovered =
+    useMemo(
+      () =>
+        next72HourBookings.filter(
+          (booking) => booking.status === "accepted" && !booking.assigned_staff
+        ),
+      [next72HourBookings]
+    );
+
+  const next72HourCoverage =
+    next72HourBookings.length === 0
+      ? 100
+      : Math.round(
+          ((next72HourBookings.length - next72HourUncovered.length) /
+            next72HourBookings.length) *
+            100
+        );
+
+  const unassignedWithMatches =
+    useMemo(
+      () =>
+        unassignedBookings.filter((booking) =>
+          (bookingStaffOptions[booking.id] || []).some(
+            (option) => option.can_assign
+          )
+        ),
+      [unassignedBookings, bookingStaffOptions]
+    );
+
+  const primaryAttentionBooking =
+    useMemo(
+      () =>
+        [...next72HourUncovered].sort(
+          (left, right) =>
+            new Date(left.start_time).getTime() -
+            new Date(right.start_time).getTime()
+        )[0] || null,
+      [next72HourUncovered]
+    );
+
+  const primaryAttentionMatches = primaryAttentionBooking
+    ? (bookingStaffOptions[primaryAttentionBooking.id] || []).filter(
+        (option) => option.can_assign
+      ).length
+    : 0;
+
   const confirmedBookings =
     useMemo(
       () =>
@@ -1331,7 +1393,102 @@ export default function ProviderDashboardPage() {
           </div>
         </header>
 
-        <section className="cs-enter grid gap-4 xl:grid-cols-[1.15fr_1fr_0.72fr]">
+        {/* Provider Command Centre: detect, explain, recommend, act, confirm. */}
+        <section className="cs-enter overflow-hidden rounded-[28px] border border-[#DDE9E5] bg-white shadow-[0_18px_50px_rgba(11,43,38,0.08)]">
+          <div className="grid lg:grid-cols-[0.86fr_1.14fr]">
+            <div className="bg-gradient-to-br from-[#0B2B26] via-[#0F3D35] to-[#14594D] p-6 text-white md:p-8">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8CE0CD]">
+                    72-hour coverage radar
+                  </p>
+                  <p className="mt-2 text-sm text-white/70">
+                    Forward staffing protection
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90">
+                  <span className={`h-2 w-2 rounded-full ${next72HourCoverage === 100 ? "bg-[#8CE0CD]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`} />
+                  Live
+                </span>
+              </div>
+
+              <div className="mt-8 flex items-end gap-4">
+                <span className="text-6xl font-semibold tabular-nums tracking-[-0.06em]">
+                  {next72HourCoverage}%
+                </span>
+                <span className="pb-2 text-sm font-semibold text-white/70">covered</span>
+              </div>
+
+              <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${next72HourCoverage === 100 ? "bg-[#79D8C2]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`}
+                  style={{ width: `${next72HourCoverage}%` }}
+                />
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75">
+                <span><strong className="text-white">{next72HourBookings.length}</strong> scheduled visits</span>
+                <span><strong className="text-white">{next72HourUncovered.length}</strong> need action</span>
+              </div>
+            </div>
+
+            <div className="bg-[#FCFDFC] p-6 md:p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Needs attention</p>
+                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[#0F1E1B]">
+                    {primaryAttentionBooking ? "Prevent the next staffing gap" : "Next 72 hours covered"}
+                  </h2>
+                </div>
+                <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${primaryAttentionBooking ? "bg-[#FFF4D8] text-[#8A5B14]" : "bg-[#E9F6F2] text-[#176B62]"}`}>
+                  {primaryAttentionBooking ? `${next72HourUncovered.length} action${next72HourUncovered.length === 1 ? "" : "s"}` : "Healthy"}
+                </span>
+              </div>
+
+              {primaryAttentionBooking ? (
+                <div className="mt-6 rounded-2xl border border-[#E6DDD0] bg-white p-5 shadow-[0_8px_24px_rgba(11,43,38,0.05)]">
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-base font-bold text-[#0F1E1B]">
+                        {getCareRecipientName(primaryAttentionBooking)}
+                      </p>
+                      <p className="mt-1 text-sm text-[#5B6B67]">
+                        {formatDate(primaryAttentionBooking.start_time)} · No carer assigned
+                      </p>
+                      <p className="mt-3 text-sm font-semibold text-[#176B62]">
+                        {primaryAttentionMatches > 0
+                          ? `${primaryAttentionMatches} suitable carer${primaryAttentionMatches === 1 ? "" : "s"} available`
+                          : "No suitable staff match yet — review availability"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveFilter("unassigned")}
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0E7C6B] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#0A6658] focus:outline-none focus:ring-4 focus:ring-[#0E7C6B]/20"
+                    >
+                      Review matches →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-[#DCEBE6] bg-[#F3FAF7] p-5">
+                  <p className="font-semibold text-[#174E45]">Nothing urgent needs your intervention.</p>
+                  <p className="mt-1 text-sm leading-6 text-[#5B6B67]">
+                    CareSphere will surface staffing risks here before they become missed visits.
+                  </p>
+                </div>
+              )}
+
+              <p className="mt-4 text-xs font-medium text-[#6B7C77]">
+                {unassignedBookings.length > 0
+                  ? `${unassignedBookings.length} unassigned overall · ${unassignedWithMatches.length} already have suitable staff matches`
+                  : "All accepted bookings currently have staff coverage."}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section hidden className="cs-enter grid gap-4 xl:grid-cols-[1.15fr_1fr_0.72fr]">
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1683,6 +1840,7 @@ export default function ProviderDashboardPage() {
           {unassignedBookings.length >
           0 && (
           <button
+            hidden
             type="button"
             onClick={() =>
               setActiveFilter(
