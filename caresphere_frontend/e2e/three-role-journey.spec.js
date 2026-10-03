@@ -36,7 +36,7 @@ test("care company reaches only its provider workspace and booking data", async 
 
   await expect(page).toHaveURL(/\/provider-dashboard$/);
   await expect(
-    page.getByRole("heading", { name: "Good to see you" })
+    page.getByRole("heading", { name: /Good (morning|afternoon|evening),/ })
   ).toBeVisible();
   await expect(page.getByText("Priya Provider", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Care company workspace" })).toBeVisible();
