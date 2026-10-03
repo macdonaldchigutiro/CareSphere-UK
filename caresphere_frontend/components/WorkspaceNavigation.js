@@ -107,12 +107,13 @@ export default function WorkspaceNavigation() {
   if (isProvider) {
     return (
       <>
-        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col bg-[#043C36] text-white shadow-2xl lg:flex">
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col bg-gradient-to-b from-[#032F2B] via-[#063D37] to-[#022824] text-white shadow-[12px_0_36px_rgba(3,47,43,0.12)] lg:flex">
           <Link href="/provider-dashboard" className="border-b border-white/10 px-6 py-6">
             <CareSphereLogo light context="Provider" className="[&>svg]:h-11 [&>svg]:w-11" />
           </Link>
 
-          <nav aria-label="Care company workspace" className="flex-1 space-y-2 px-4 py-6">
+          <nav aria-label="Care company workspace" className="flex-1 px-3 py-6">
+            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/55">Operations</p>
             {items.map(({ label, href, icon: Icon }) => {
               const active = pathMatches(pathname, href);
               return (
@@ -120,13 +121,13 @@ export default function WorkspaceNavigation() {
                   key={href}
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-11 items-center gap-3.5 rounded-xl px-4 text-sm font-semibold transition ${
+                  className={`relative mb-1 flex min-h-11 items-center gap-3.5 rounded-xl px-4 text-sm font-semibold transition ${
                     active
-                      ? "bg-[#123B55] text-white shadow-[inset_3px_0_0_#2BD4C5]"
-                      : "text-slate-300 hover:bg-white/8 hover:text-white"
+                      ? "bg-white/10 text-white shadow-[inset_3px_0_0_#D4AE57]"
+                      : "text-white/72 hover:bg-white/7 hover:text-white"
                   }`}
                 >
-                  <Icon className={`h-[18px] w-[18px] ${active ? "text-[#66E2D6]" : "text-slate-400"}`} />
+                  <Icon className={`h-[18px] w-[18px] ${active ? "text-white" : "text-white/65"}`} />
                   {label}
                 </Link>
               );
@@ -153,7 +154,7 @@ export default function WorkspaceNavigation() {
             {items.map(({ label, href, icon: Icon }) => {
               const active = pathMatches(pathname, href);
               return (
-                <Link key={href} href={href} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold ${active ? "bg-[#E8F8F4] text-[#087C76]" : "text-slate-600"}`}>
+                <Link key={href} href={href} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold ${active ? "bg-[#E5FAF1] text-[#087F68]" : "text-slate-600"}`}>
                   <Icon className="h-4 w-4" />
                   {label}
                 </Link>
@@ -173,17 +174,13 @@ export default function WorkspaceNavigation() {
       <div className="mx-auto flex max-w-[1560px] items-center gap-2 overflow-x-auto px-4 py-3 lg:px-8">
         <Link
           href={roleHome}
-          className="mr-3 flex shrink-0 items-center gap-3 border-r border-slate-200 pr-5 font-black text-[#0A2035]"
+          className="mr-3 flex shrink-0 items-center gap-3 border-r border-slate-200 pr-5 font-black text-[#123B36]"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#087C76] to-[#16A89D] text-white shadow-[0_8px_22px_rgba(8,124,118,0.25)]">
-            <HeartHandshake className="h-5 w-5" />
-          </span>
-          <span className="hidden sm:block">
-            <span className="block leading-tight">CareSphere</span>
-            <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#087C76]">
-              {isProvider ? "Provider" : "My care"}
-            </span>
-          </span>
+          <CareSphereLogo
+            compact={false}
+            context={isProvider ? "Provider" : "My care"}
+            className="[&>svg]:h-10 [&>svg]:w-10"
+          />
         </Link>
 
         {items.map(({ label, href, icon: Icon }) => {
@@ -196,8 +193,8 @@ export default function WorkspaceNavigation() {
               aria-current={active ? "page" : undefined}
               className={`flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
                 active
-                  ? "bg-[#E8F8F4] text-[#087C76] shadow-[inset_0_0_0_1px_rgba(8,124,118,0.08)]"
-                  : "text-slate-600 hover:bg-slate-100/80 hover:text-[#0A2035]"
+                  ? "bg-[#E5FAF1] text-[#087F68] shadow-[inset_0_0_0_1px_rgba(8,127,104,0.1)]"
+                  : "text-slate-600 hover:bg-emerald-50/70 hover:text-[#123B36]"
               }`}
             >
               <Icon className="h-4 w-4" />

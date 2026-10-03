@@ -1388,7 +1388,7 @@ export default function ProviderDashboardPage() {
               h-9
               w-9
               animate-spin
-              text-[#087F68]
+              text-[#176B62]
             "
           />
 
@@ -1468,19 +1468,19 @@ export default function ProviderDashboardPage() {
         </header>
 
         {/* Provider Command Centre: detect, explain, recommend, act, confirm. */}
-        <section className="cs-enter overflow-hidden rounded-[28px] border border-[#DDE9E5] bg-white shadow-[0_18px_50px_rgba(11,43,38,0.08)]">
+        <section className="cs-enter overflow-hidden rounded-[22px] border border-[#E3E9E7] bg-white shadow-[0_10px_32px_rgba(18,37,32,0.055)]">
           <div className="grid lg:grid-cols-[0.86fr_1.14fr]">
-            <div className="bg-gradient-to-br from-[#0B2B26] via-[#0F3D35] to-[#14594D] p-6 text-white md:p-8">
+            <div className="border-b border-[#E8ECEB] bg-white p-6 text-[#122520] md:p-7 lg:border-b-0 lg:border-r">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8CE0CD]">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#087765]">
                     72-hour coverage radar
                   </p>
-                  <p className="mt-2 text-sm text-white/70">
+                  <p className="mt-2 text-sm text-[#5B6B67]">
                     Forward staffing protection
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#EAF6F1] px-3 py-1.5 text-xs font-bold text-[#087765]">
                   <span className={`h-2 w-2 rounded-full ${next72HourCoverage === 100 ? "bg-[#8CE0CD]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`} />
                   Live
                 </span>
@@ -1490,23 +1490,23 @@ export default function ProviderDashboardPage() {
                 <span className="text-6xl font-semibold tabular-nums tracking-[-0.06em]">
                   {next72HourCoverage}%
                 </span>
-                <span className="pb-2 text-sm font-semibold text-white/70">covered</span>
+                <span className="pb-2 text-sm font-semibold text-[#5B6B67]">covered</span>
               </div>
 
-              <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/10">
+              <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#E5EBE9]">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${next72HourCoverage === 100 ? "bg-[#79D8C2]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`}
                   style={{ width: `${next72HourCoverage}%` }}
                 />
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75">
-                <span><strong className="text-white">{next72HourBookings.length}</strong> scheduled visits</span>
-                <span><strong className="text-white">{next72HourUncovered.length}</strong> need action</span>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#5B6B67]">
+                <span><strong className="text-[#122520]">{next72HourBookings.length}</strong> scheduled visits</span>
+                <span><strong className="text-[#122520]">{next72HourUncovered.length}</strong> need action</span>
               </div>
             </div>
 
-            <div className="bg-[#FCFDFC] p-6 md:p-8">
+            <div className="bg-white p-6 md:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Needs attention</p>
@@ -1545,7 +1545,7 @@ export default function ProviderDashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-6 rounded-2xl border border-[#DCEBE6] bg-[#F3FAF7] p-5">
+                <div className="mt-6 rounded-2xl border border-[#E2ECE8] bg-[#F6FAF8] p-5">
                   <p className="font-semibold text-[#174E45]">Nothing urgent needs your intervention.</p>
                   <p className="mt-1 text-sm leading-6 text-[#5B6B67]">
                     CareSphere will surface staffing risks here before they become missed visits.
@@ -1563,7 +1563,7 @@ export default function ProviderDashboardPage() {
         </section>
 
         <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
-          <article className="rounded-[24px] border border-[#E6ECEA] bg-white p-6 shadow-[0_8px_28px_rgba(15,30,27,0.05)]">
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-6 shadow-[0_8px_24px_rgba(18,37,32,0.04)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Live operations</p>
@@ -1585,8 +1585,21 @@ export default function ProviderDashboardPage() {
               ].map(([value, label, filter, hint, background, colour]) => {
                 const active = Number(value) > 0;
                 return (
-                  <button key={label} type="button" onClick={() => setActiveFilter(filter)} className="rounded-2xl border border-[#E6ECEA] p-4 text-left transition duration-150 hover:-translate-y-0.5 hover:border-[#C9D8D3] hover:shadow-sm">
-                    <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-lg font-semibold tabular-nums" style={{ backgroundColor: active ? background : "#F3F6F5", color: active ? colour : "#7A8985" }}>{value}</span>
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setActiveFilter(filter)}
+                    className="rounded-2xl border border-[#E6ECEA] p-4 text-left transition duration-150 hover:-translate-y-0.5 hover:border-[#C9D8D3] hover:shadow-sm"
+                  >
+                    <span
+                      className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-lg font-semibold tabular-nums"
+                      style={{
+                        backgroundColor: active ? background : "#F3F6F5",
+                        color: active ? colour : "#7A8985",
+                      }}
+                    >
+                      {value}
+                    </span>
                     <span className="mt-3 block text-sm font-bold text-[#0F1E1B]">{label}</span>
                     <span className="mt-1 block text-xs text-[#6B7C77]">{active ? hint : "None right now"}</span>
                   </button>
@@ -1604,12 +1617,18 @@ export default function ProviderDashboardPage() {
                       : `${liveOperations.lateCheckIns.length} carer check-in${liveOperations.lateCheckIns.length === 1 ? " is" : "s are"} late.`}
                   </p>
                 </div>
-                <button type="button" onClick={() => setActiveFilter(liveOperations.missed.length > 0 ? "missed" : "late")} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#0F1E1B] px-4 text-xs font-bold text-white transition hover:bg-[#21332F]">Review affected visits →</button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilter(liveOperations.missed.length > 0 ? "missed" : "late")}
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#0F1E1B] px-4 text-xs font-bold text-white transition hover:bg-[#21332F]"
+                >
+                  Review affected visits →
+                </button>
               </div>
             )}
           </article>
 
-          <article className="rounded-[24px] border border-[#E6ECEA] bg-white p-6 shadow-[0_8px_28px_rgba(15,30,27,0.05)]">
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-6 shadow-[0_8px_24px_rgba(18,37,32,0.04)]">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Visit timeline</p>
@@ -1623,11 +1642,33 @@ export default function ProviderDashboardPage() {
                 {liveOperations.today.slice(0, 5).map((booking) => {
                   const isMissed = liveOperations.missed.some((item) => item.id === booking.id);
                   const isLate = liveOperations.lateCheckIns.some((item) => item.id === booking.id);
-                  const statusLabel = isMissed ? "Missed" : isLate ? "Late" : booking.status === "in_progress" ? "On visit" : booking.status === "completed" ? "Complete" : "Scheduled";
-                  const statusClass = isMissed ? "bg-[#FBEAE8] text-[#C0392B]" : isLate ? "bg-[#FCF3E1] text-[#9A661B]" : booking.status === "in_progress" ? "bg-[#E7F5EF] text-[#12805C]" : "bg-[#F1F5F4] text-[#5B6B67]";
+                  const statusLabel = isMissed
+                    ? "Missed"
+                    : isLate
+                    ? "Late"
+                    : booking.status === "in_progress"
+                    ? "On visit"
+                    : booking.status === "completed"
+                    ? "Complete"
+                    : "Scheduled";
+                  const statusClass = isMissed
+                    ? "bg-[#FBEAE8] text-[#C0392B]"
+                    : isLate
+                    ? "bg-[#FCF3E1] text-[#9A661B]"
+                    : booking.status === "in_progress"
+                    ? "bg-[#E7F5EF] text-[#12805C]"
+                    : "bg-[#F1F5F4] text-[#5B6B67]";
+
                   return (
-                    <button key={booking.id} type="button" onClick={() => setActiveFilter(isMissed ? "missed" : isLate ? "late" : booking.status)} className="flex w-full items-center gap-3 py-4 text-left first:pt-1">
-                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${getAvatarClasses(getCareRecipientName(booking))}`}>{getInitials(getCareRecipientName(booking))}</span>
+                    <button
+                      key={booking.id}
+                      type="button"
+                      onClick={() => setActiveFilter(isMissed ? "missed" : isLate ? "late" : booking.status)}
+                      className="flex w-full items-center gap-3 py-4 text-left first:pt-1"
+                    >
+                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${getAvatarClasses(getCareRecipientName(booking))}`}>
+                        {getInitials(getCareRecipientName(booking))}
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-bold text-[#0F1E1B]">{getCareRecipientName(booking)}</span>
                         <span className="mt-1 block text-xs text-[#6B7C77]">{formatTime(booking.start_time)} · {booking.care_type || "Care visit"}</span>
@@ -1651,7 +1692,7 @@ export default function ProviderDashboardPage() {
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-bold text-[#0A2035]">Today&apos;s operations</p>
+                <p className="font-bold text-[#123B36]">Today&apos;s operations</p>
                 <p className="mt-1 text-xs text-slate-500">Current care activity</p>
               </div>
               <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700">
@@ -1676,14 +1717,14 @@ export default function ProviderDashboardPage() {
           <article className="cs-surface p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-bold text-[#0A2035]">Booking progress</p>
+                <p className="font-bold text-[#123B36]">Booking progress</p>
                 <p className="mt-1 text-xs text-slate-500">Across the current care journey</p>
               </div>
               <span className="text-xs font-bold text-slate-400">{bookings.length} total</span>
             </div>
             {bookings.length === 0 ? (
               <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-4">
-                <p className="text-sm font-semibold text-[#0A2035]">Ready for your first care request</p>
+                <p className="text-sm font-semibold text-[#123B36]">Ready for your first care request</p>
                 <p className="mt-1 text-xs leading-5 text-slate-500">Keep your availability current so families can request suitable care.</p>
                 <Link href="/provider-availability" className="mt-3 inline-flex text-xs font-bold text-[#087C76]">Update availability →</Link>
               </div>
@@ -1692,7 +1733,7 @@ export default function ProviderDashboardPage() {
                 {[
                   ["Requested", pendingBookings.length, "bg-amber-500"],
                   ["Confirmed", confirmedBookings.length, "bg-blue-500"],
-                  ["In progress", inProgressBookings.length, "bg-[#0B9188]"],
+                  ["In progress", inProgressBookings.length, "bg-[#0B9A7C]"],
                   ["Completed", completedBookings.length, "bg-emerald-500"],
                 ].map(([label, value, colour], index, stages) => (
                   <div key={label} className="relative flex flex-1 flex-col items-center text-center">
@@ -1706,11 +1747,11 @@ export default function ProviderDashboardPage() {
           </article>
 
           <article className="cs-surface p-5">
-            <p className="font-bold text-[#0A2035]">Team readiness</p>
+            <p className="font-bold text-[#123B36]">Team readiness</p>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-slate-500">Team members</span>
-                <span className="font-bold text-[#0A2035]">{staffMembers.length}</span>
+                <span className="font-bold text-[#123B36]">{staffMembers.length}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span className="text-slate-500">Active bookings</span>
@@ -1733,9 +1774,9 @@ export default function ProviderDashboardPage() {
             overflow-hidden
             rounded-[28px]
             bg-gradient-to-r
-            from-[#043C36]
-            via-[#0A3446]
-            to-[#087C76]
+            from-[#033A34]
+            via-[#07534A]
+            to-[#0B9A7C]
             px-6
             py-8
             text-white
@@ -2648,10 +2689,10 @@ export default function ProviderDashboardPage() {
                     text-sm
                     outline-none
                     transition
-                    focus:border-[#087F68]
+                    focus:border-[#176B62]
                     focus:bg-white
                     focus:ring-2
-                    focus:ring-[#087F68]/10
+                    focus:ring-[#176B62]/10
                   "
                 />
               </div>
@@ -2718,7 +2759,7 @@ export default function ProviderDashboardPage() {
                       ${
                         activeFilter ===
                         value
-                          ? "bg-[#087F68] text-white"
+                          ? "bg-[#176B62] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }
                     `}
@@ -2802,7 +2843,7 @@ export default function ProviderDashboardPage() {
                   className="
                     mt-5
                     rounded-xl
-                    bg-[#087F68]
+                    bg-[#176B62]
                     px-4
                     py-2.5
                     text-sm
@@ -2814,7 +2855,7 @@ export default function ProviderDashboardPage() {
                 </button>
               )}
               {activeFilter === "all" && (
-                <Link href="/provider-availability" className="mt-5 inline-flex rounded-xl bg-[#087F68] px-4 py-2.5 text-sm font-semibold text-white">
+                <Link href="/provider-availability" className="mt-5 inline-flex rounded-xl bg-[#176B62] px-4 py-2.5 text-sm font-semibold text-white">
                   Review availability
                 </Link>
               )}
@@ -3318,7 +3359,7 @@ export default function ProviderDashboardPage() {
                                   items-center
                                   gap-2
                                   rounded-xl
-                                  bg-[#087F68]
+                                  bg-[#176B62]
                                   px-4
                                   py-2.5
                                   text-sm
@@ -3464,9 +3505,9 @@ export default function ProviderDashboardPage() {
                                   text-slate-700
                                   outline-none
                                   transition
-                                  focus:border-[#087F68]
+                                  focus:border-[#176B62]
                                   focus:ring-2
-                                  focus:ring-[#087F68]/10
+                                  focus:ring-[#176B62]/10
                                   disabled:cursor-not-allowed
                                   disabled:opacity-50
                                 "
@@ -3609,7 +3650,7 @@ export default function ProviderDashboardPage() {
                                   justify-center
                                   gap-2
                                   rounded-xl
-                                  bg-[#087F68]
+                                  bg-[#176B62]
                                   px-4
                                   py-2.5
                                   text-sm
@@ -3751,7 +3792,7 @@ export default function ProviderDashboardPage() {
                                 items-center
                                 gap-2
                                 rounded-xl
-                                bg-[#087F68]
+                                bg-[#176B62]
                                 px-4
                                 py-2.5
                                 text-sm
@@ -3899,7 +3940,7 @@ export default function ProviderDashboardPage() {
     bg-white
     p-4
     transition
-    hover:border-[#087F68]
+    hover:border-[#176B62]
     hover:shadow-sm
   "
 >
@@ -3912,7 +3953,7 @@ export default function ProviderDashboardPage() {
       justify-center
       rounded-xl
       bg-teal-50
-      text-[#087F68]
+      text-[#176B62]
     "
   >
     <Building2 className="h-5 w-5" />
@@ -4041,7 +4082,7 @@ export default function ProviderDashboardPage() {
                 justify-center
                 rounded-xl
                 bg-[#EAF5F3]
-                text-[#087F68]
+                text-[#176B62]
               "
             >
               <CalendarDays
