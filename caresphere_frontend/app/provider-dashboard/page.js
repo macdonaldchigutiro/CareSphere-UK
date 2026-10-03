@@ -619,6 +619,53 @@ export default function ProviderDashboardPage() {
       ).length
     : 0;
 
+  const liveOperations =
+    useMemo(() => {
+      const now = Date.now();
+      const oneHour = 60 * 60 * 1000;
+      const thirtyMinutes = 30 * 60 * 1000;
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+
+      const today = bookings
+        .filter((booking) => {
+          const start = new Date(booking.start_time).getTime();
+          return (
+            !Number.isNaN(start) &&
+            start >= startOfDay.getTime() &&
+            start < endOfDay.getTime() &&
+            !["cancelled", "declined"].includes(booking.status)
+          );
+        })
+        .sort(
+          (left, right) =>
+            new Date(left.start_time).getTime() -
+            new Date(right.start_time).getTime()
+        );
+
+      const onVisit = today.filter(
+        (booking) => booking.status === "in_progress"
+      );
+      const startingSoon = today.filter((booking) => {
+        if (!["accepted", "confirmed"].includes(booking.status)) return false;
+        const start = new Date(booking.start_time).getTime();
+        return start >= now && start <= now + oneHour;
+      });
+      const lateCheckIns = today.filter((booking) => {
+        if (!["accepted", "confirmed"].includes(booking.status)) return false;
+        const delay = now - new Date(booking.start_time).getTime();
+        return delay > 0 && delay <= thirtyMinutes;
+      });
+      const missed = today.filter((booking) => {
+        if (!["accepted", "confirmed"].includes(booking.status)) return false;
+        return now - new Date(booking.start_time).getTime() > thirtyMinutes;
+      });
+
+      return { today, onVisit, startingSoon, lateCheckIns, missed };
+    }, [bookings]);
+
   const confirmedBookings =
     useMemo(
       () =>
@@ -708,6 +755,18 @@ export default function ProviderDashboardPage() {
                 "accepted" &&
               !booking.assigned_staff
           );
+        } else if (activeFilter === "late") {
+          items = items.filter((booking) =>
+            liveOperations.lateCheckIns.some((item) => item.id === booking.id)
+          );
+        } else if (activeFilter === "missed") {
+          items = items.filter((booking) =>
+            liveOperations.missed.some((item) => item.id === booking.id)
+          );
+        } else if (activeFilter === "starting_soon") {
+          items = items.filter((booking) =>
+            liveOperations.startingSoon.some((item) => item.id === booking.id)
+          );
         } else {
           items = items.filter(
             (booking) =>
@@ -752,6 +811,7 @@ export default function ProviderDashboardPage() {
       bookings,
       activeFilter,
       searchTerm,
+      liveOperations,
     ]);
 
 
@@ -1036,6 +1096,20 @@ export default function ProviderDashboardPage() {
         user?.email ||
         "Care Provider"
       );
+    };
+
+  const getFirstName =
+    () =>
+      user?.first_name ||
+      getProviderName().split(/\s+/)[0] ||
+      "there";
+
+  const getGreeting =
+    () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return "Good morning";
+      if (hour < 18) return "Good afternoon";
+      return "Good evening";
     };
 
 
@@ -1364,11 +1438,17 @@ export default function ProviderDashboardPage() {
 
         <header className="cs-enter mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-bold text-[#087C76]">{getProviderName()}</p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.025em] text-[#0A2035]">
-              {isNewAccount ? "Welcome" : "Good to see you"}
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">
+              {new Intl.DateTimeFormat("en-GB", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+              }).format(new Date())}
+            </p>
+            <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] text-[#0F1E1B] md:text-[36px]">
+              {isNewAccount ? "Welcome" : getGreeting()}, {getFirstName()}
             </h1>
-            <p className="mt-1 text-sm text-slate-500">Here&apos;s what needs attention across your care service.</p>
+            <p className="mt-2 text-sm text-[#5B6B67]">Here&apos;s what needs your attention across your care service.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="relative hidden xl:block">
@@ -1380,15 +1460,9 @@ export default function ProviderDashboardPage() {
                 className="cs-input w-80 py-2 pl-10 pr-4 text-sm outline-none"
               />
             </label>
-            <div className="flex min-h-12 items-center gap-2 px-1 text-sm font-semibold text-slate-600">
-              <CalendarDays className="h-4 w-4 text-[#087C76]" />
-              <time suppressHydrationWarning>
-                {new Intl.DateTimeFormat("en-GB", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                }).format(new Date())}
-              </time>
+            <div className="flex min-h-10 items-center gap-2 rounded-full bg-[#E7F5EF] px-4 text-xs font-bold text-[#12805C]">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[#12805C]" />
+              All systems live
             </div>
           </div>
         </header>
@@ -1486,6 +1560,91 @@ export default function ProviderDashboardPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
+          <article className="rounded-[24px] border border-[#E6ECEA] bg-white p-6 shadow-[0_8px_28px_rgba(15,30,27,0.05)]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Live operations</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Today&apos;s visit tracker</h2>
+                <p className="mt-1 text-sm text-[#5B6B67]">See what is happening now and intervene before a visit is missed.</p>
+              </div>
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#F1F7F5] px-3 py-1.5 text-xs font-bold text-[#176B62]">
+                <span className="h-2 w-2 rounded-full bg-[#12805C]" />
+                {liveOperations.today.length} visits today
+              </span>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                [liveOperations.onVisit.length, "On visit", "in_progress", "Care underway", "#E7F5EF", "#12805C"],
+                [liveOperations.startingSoon.length, "Starting soon", "starting_soon", "Next 60 minutes", "#FCF3E1", "#9A661B"],
+                [liveOperations.lateCheckIns.length, "Late check-in", "late", "Needs a check", "#FFF4D8", "#B7791F"],
+                [liveOperations.missed.length, "Missed", "missed", "Immediate action", "#FBEAE8", "#C0392B"],
+              ].map(([value, label, filter, hint, background, colour]) => {
+                const active = Number(value) > 0;
+                return (
+                  <button key={label} type="button" onClick={() => setActiveFilter(filter)} className="rounded-2xl border border-[#E6ECEA] p-4 text-left transition duration-150 hover:-translate-y-0.5 hover:border-[#C9D8D3] hover:shadow-sm">
+                    <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2 text-lg font-semibold tabular-nums" style={{ backgroundColor: active ? background : "#F3F6F5", color: active ? colour : "#7A8985" }}>{value}</span>
+                    <span className="mt-3 block text-sm font-bold text-[#0F1E1B]">{label}</span>
+                    <span className="mt-1 block text-xs text-[#6B7C77]">{active ? hint : "None right now"}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {(liveOperations.missed.length > 0 || liveOperations.lateCheckIns.length > 0) && (
+              <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#F0D6D1] bg-[#FFF9F8] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#8F2E25]">A visit needs intervention</p>
+                  <p className="mt-1 text-xs leading-5 text-[#6B4B47]">
+                    {liveOperations.missed.length > 0
+                      ? `${liveOperations.missed.length} visit${liveOperations.missed.length === 1 ? " has" : "s have"} passed the 30-minute safety threshold.`
+                      : `${liveOperations.lateCheckIns.length} carer check-in${liveOperations.lateCheckIns.length === 1 ? " is" : "s are"} late.`}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setActiveFilter(liveOperations.missed.length > 0 ? "missed" : "late")} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#0F1E1B] px-4 text-xs font-bold text-white transition hover:bg-[#21332F]">Review affected visits →</button>
+              </div>
+            )}
+          </article>
+
+          <article className="rounded-[24px] border border-[#E6ECEA] bg-white p-6 shadow-[0_8px_28px_rgba(15,30,27,0.05)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Visit timeline</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">What&apos;s next</h2>
+              </div>
+              <button type="button" onClick={() => setActiveFilter("all")} className="text-xs font-bold text-[#0E7C6B]">View all →</button>
+            </div>
+
+            {liveOperations.today.length > 0 ? (
+              <div className="mt-5 divide-y divide-[#EDF1F0]">
+                {liveOperations.today.slice(0, 5).map((booking) => {
+                  const isMissed = liveOperations.missed.some((item) => item.id === booking.id);
+                  const isLate = liveOperations.lateCheckIns.some((item) => item.id === booking.id);
+                  const statusLabel = isMissed ? "Missed" : isLate ? "Late" : booking.status === "in_progress" ? "On visit" : booking.status === "completed" ? "Complete" : "Scheduled";
+                  const statusClass = isMissed ? "bg-[#FBEAE8] text-[#C0392B]" : isLate ? "bg-[#FCF3E1] text-[#9A661B]" : booking.status === "in_progress" ? "bg-[#E7F5EF] text-[#12805C]" : "bg-[#F1F5F4] text-[#5B6B67]";
+                  return (
+                    <button key={booking.id} type="button" onClick={() => setActiveFilter(isMissed ? "missed" : isLate ? "late" : booking.status)} className="flex w-full items-center gap-3 py-4 text-left first:pt-1">
+                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${getAvatarClasses(getCareRecipientName(booking))}`}>{getInitials(getCareRecipientName(booking))}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-bold text-[#0F1E1B]">{getCareRecipientName(booking)}</span>
+                        <span className="mt-1 block text-xs text-[#6B7C77]">{formatTime(booking.start_time)} · {booking.care_type || "Care visit"}</span>
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}>{statusLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-dashed border-[#D9E3E0] bg-[#F8FAF9] px-5 py-8 text-center">
+                <CheckCircle2 className="mx-auto h-6 w-6 text-[#0E7C6B]" />
+                <p className="mt-3 text-sm font-bold text-[#0F1E1B]">No visits scheduled today</p>
+                <p className="mt-1 text-xs leading-5 text-[#6B7C77]">Your timeline will update automatically when care is booked.</p>
+              </div>
+            )}
+          </article>
         </section>
 
         <section hidden className="cs-enter grid gap-4 xl:grid-cols-[1.15fr_1fr_0.72fr]">
