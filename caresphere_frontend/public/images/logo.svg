@@ -1,34 +1,13 @@
-<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0EA5E9" />
-      <stop offset="100%" stop-color="#EC4899" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(14, 165, 233, 0.3)" />
-    </filter>
-  </defs>
-  
-  <!-- Background Circle -->
-  <circle cx="30" cy="30" r="28" fill="url(#logoGradient)" opacity="0.1" />
-  
-  <!-- Main Icon - Caring Hands -->
-  <path d="M15 35 Q25 20 35 35 Q45 20 55 35 Q45 50 35 35 Q25 50 15 35" 
-        fill="url(#logoGradient)" 
-        filter="url(#shadow)" />
-  
-  <!-- Heart in center -->
-  <path d="M30 25 C25 20 20 25 25 30 C27 32 30 35 30 35 C30 35 33 32 35 30 C40 25 35 20 30 25" 
-        fill="white" 
-        opacity="0.9" />
-  
-  <!-- Company Name -->
-  <text x="70" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#logoGradient)">
-    CareSphere UK
-  </text>
-  
-  <!-- Tagline -->
-  <text x="70" y="48" font-family="Arial, sans-serif" font-size="12" fill="#666">
-    Transforming Care Coordination
-  </text>
+<svg width="360" height="88" viewBox="0 0 360 88" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">CareSphere UK</title><desc id="desc">A heart supported by caring hands within a protective sphere.</desc>
+  <defs><linearGradient id="care" x1="8" y1="8" x2="72" y2="76" gradientUnits="userSpaceOnUse"><stop stop-color="#087F68"/><stop offset="1" stop-color="#16B89A"/></linearGradient></defs>
+  <rect x="4" y="4" width="80" height="80" rx="24" fill="url(#care)"/>
+  <g transform="translate(14 14)" stroke="white" fill="none" stroke-linecap="round">
+    <path d="M9.5 28.5C5.6 17.4 13.8 7 26 7s20.4 10.4 16.5 21.5" stroke-width="4.4"/>
+    <path d="M26 32.5 17.3 24a6 6 0 0 1 8.4-8.5l.3.4.3-.4a6 6 0 0 1 8.4 8.5L26 32.5Z" stroke-width="3.6" stroke-linejoin="round"/>
+    <path d="M6 31c3.7.9 6.1 2.9 8.6 5.5 2.3 2.4 5.7 4.1 11.4 4.3M46 31c-3.7.9-6.1 2.9-8.6 5.5-2.3 2.4-5.7 4.1-11.4 4.3" stroke-width="4.4"/>
+    <path d="M8.3 38.7C11.9 45.2 18.4 49 26 49s14.1-3.8 17.7-10.3" stroke-width="3.6" opacity=".82"/>
+  </g>
+  <text x="104" y="43" fill="#123B36" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="800" letter-spacing="-0.7">CareSphere <tspan fill="#087F68">UK</tspan></text>
+  <text x="105" y="63" fill="#5F746F" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="2.1">CARE WITH CONFIDENCE</text>
 </svg>
