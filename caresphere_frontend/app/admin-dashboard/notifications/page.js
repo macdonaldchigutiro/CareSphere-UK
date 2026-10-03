@@ -206,7 +206,7 @@ export default function AdminNotificationsPage() {
               flex h-11 w-11
               items-center justify-center
               rounded-2xl bg-teal-50
-              text-[#176B62]
+              text-[#087F68]
             ">
               <Bell className="h-5 w-5" />
             </div>
@@ -635,7 +635,7 @@ function LoadingState({ text }) {
           mx-auto h-8 w-8
           animate-spin rounded-full
           border-4 border-slate-200
-          border-t-[#176B62]
+          border-t-[#087F68]
         " />
 
         <p className="

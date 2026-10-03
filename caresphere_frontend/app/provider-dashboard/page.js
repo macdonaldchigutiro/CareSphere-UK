@@ -1252,7 +1252,7 @@ export default function ProviderDashboardPage() {
               h-9
               w-9
               animate-spin
-              text-[#176B62]
+              text-[#087F68]
             "
           />
 
@@ -1417,7 +1417,7 @@ export default function ProviderDashboardPage() {
             overflow-hidden
             rounded-[28px]
             bg-gradient-to-r
-            from-[#061B2C]
+            from-[#043C36]
             via-[#0A3446]
             to-[#087C76]
             px-6
@@ -2331,10 +2331,10 @@ export default function ProviderDashboardPage() {
                     text-sm
                     outline-none
                     transition
-                    focus:border-[#176B62]
+                    focus:border-[#087F68]
                     focus:bg-white
                     focus:ring-2
-                    focus:ring-[#176B62]/10
+                    focus:ring-[#087F68]/10
                   "
                 />
               </div>
@@ -2401,7 +2401,7 @@ export default function ProviderDashboardPage() {
                       ${
                         activeFilter ===
                         value
-                          ? "bg-[#176B62] text-white"
+                          ? "bg-[#087F68] text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }
                     `}
@@ -2485,7 +2485,7 @@ export default function ProviderDashboardPage() {
                   className="
                     mt-5
                     rounded-xl
-                    bg-[#176B62]
+                    bg-[#087F68]
                     px-4
                     py-2.5
                     text-sm
@@ -2497,7 +2497,7 @@ export default function ProviderDashboardPage() {
                 </button>
               )}
               {activeFilter === "all" && (
-                <Link href="/provider-availability" className="mt-5 inline-flex rounded-xl bg-[#176B62] px-4 py-2.5 text-sm font-semibold text-white">
+                <Link href="/provider-availability" className="mt-5 inline-flex rounded-xl bg-[#087F68] px-4 py-2.5 text-sm font-semibold text-white">
                   Review availability
                 </Link>
               )}
@@ -3001,7 +3001,7 @@ export default function ProviderDashboardPage() {
                                   items-center
                                   gap-2
                                   rounded-xl
-                                  bg-[#176B62]
+                                  bg-[#087F68]
                                   px-4
                                   py-2.5
                                   text-sm
@@ -3147,9 +3147,9 @@ export default function ProviderDashboardPage() {
                                   text-slate-700
                                   outline-none
                                   transition
-                                  focus:border-[#176B62]
+                                  focus:border-[#087F68]
                                   focus:ring-2
-                                  focus:ring-[#176B62]/10
+                                  focus:ring-[#087F68]/10
                                   disabled:cursor-not-allowed
                                   disabled:opacity-50
                                 "
@@ -3292,7 +3292,7 @@ export default function ProviderDashboardPage() {
                                   justify-center
                                   gap-2
                                   rounded-xl
-                                  bg-[#176B62]
+                                  bg-[#087F68]
                                   px-4
                                   py-2.5
                                   text-sm
@@ -3434,7 +3434,7 @@ export default function ProviderDashboardPage() {
                                 items-center
                                 gap-2
                                 rounded-xl
-                                bg-[#176B62]
+                                bg-[#087F68]
                                 px-4
                                 py-2.5
                                 text-sm
@@ -3582,7 +3582,7 @@ export default function ProviderDashboardPage() {
     bg-white
     p-4
     transition
-    hover:border-[#176B62]
+    hover:border-[#087F68]
     hover:shadow-sm
   "
 >
@@ -3595,7 +3595,7 @@ export default function ProviderDashboardPage() {
       justify-center
       rounded-xl
       bg-teal-50
-      text-[#176B62]
+      text-[#087F68]
     "
   >
     <Building2 className="h-5 w-5" />
@@ -3724,7 +3724,7 @@ export default function ProviderDashboardPage() {
                 justify-center
                 rounded-xl
                 bg-[#EAF5F3]
-                text-[#176B62]
+                text-[#087F68]
               "
             >
               <CalendarDays

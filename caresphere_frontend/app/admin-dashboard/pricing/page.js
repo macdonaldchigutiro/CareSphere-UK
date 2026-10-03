@@ -191,7 +191,7 @@ export default function AdminPricingPage() {
             <div className="
               flex h-11 w-11 items-center
               justify-center rounded-2xl
-              bg-teal-50 text-[#176B62]
+              bg-teal-50 text-[#087F68]
             ">
               <Tags className="h-5 w-5" />
             </div>

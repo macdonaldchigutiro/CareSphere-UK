@@ -395,7 +395,7 @@ export default function RequestCarePage() {
 
         {/* HERO */}
 
-        <section className="rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10">
+        <section className="rounded-[32px] bg-[#032F2B] px-7 py-10 text-white shadow-xl md:px-10">
 
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#6EE7D8]">
             Request care

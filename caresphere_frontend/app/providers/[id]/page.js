@@ -1070,7 +1070,7 @@ export default function ProviderDetailsPage() {
 
         {/* HERO */}
 
-        <section className="overflow-hidden rounded-[32px] bg-[#071A2B] p-7 text-white shadow-xl md:p-10">
+        <section className="overflow-hidden rounded-[32px] bg-[#032F2B] p-7 text-white shadow-xl md:p-10">
 
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-start">
 
@@ -1166,7 +1166,7 @@ export default function ProviderDetailsPage() {
               className={`inline-flex w-fit items-center gap-2 rounded-xl px-6 py-3 font-bold transition ${
                 isSaved
                   ? "bg-rose-50 text-rose-600"
-                  : "bg-[#6EE7D8] text-[#071A2B] hover:bg-white"
+                  : "bg-[#6EE7D8] text-[#032F2B] hover:bg-white"
               }`}
             >
 

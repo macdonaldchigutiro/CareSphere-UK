@@ -688,7 +688,7 @@ export default function FindCarePage() {
 
       {/* HERO */}
 
-      <section className="relative overflow-hidden bg-[#061B2C]">
+      <section className="relative overflow-hidden bg-[#043C36]">
         <div aria-hidden="true" className="absolute -right-32 -top-44 h-[34rem] w-[34rem] rounded-full bg-[#16A89D]/20 blur-3xl" />
         <div aria-hidden="true" className="absolute bottom-0 left-1/3 h-48 w-80 rounded-full bg-blue-500/10 blur-3xl" />
         <div className="relative mx-auto max-w-[1500px] px-5 py-14 lg:px-8 lg:py-20">

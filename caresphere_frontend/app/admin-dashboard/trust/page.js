@@ -246,7 +246,7 @@ export default function AdminTrustPage() {
                 flex h-11 w-11
                 items-center justify-center
                 rounded-2xl bg-teal-50
-                text-[#176B62]
+                text-[#087F68]
               ">
                 <ShieldCheck className="h-5 w-5" />
               </div>
@@ -425,7 +425,7 @@ function TrustRow({
             flex h-10 w-10
             items-center justify-center
             rounded-xl bg-teal-50
-            text-[#176B62]
+            text-[#087F68]
           ">
             <Building2 className="h-5 w-5" />
           </div>
@@ -459,7 +459,7 @@ function TrustRow({
             rounded-full bg-slate-100
           ">
             <div
-              className="h-full rounded-full bg-[#176B62]"
+              className="h-full rounded-full bg-[#087F68]"
               style={{
                 width: `${Math.min(
                   100,
@@ -595,7 +595,7 @@ function TrustRow({
             className="
               inline-flex h-10 items-center
               justify-center rounded-xl
-              bg-[#176B62] px-4
+              bg-[#087F68] px-4
               text-xs font-black
               text-white transition
               hover:bg-[#0D574F]
@@ -787,7 +787,7 @@ function LoadingState({ text }) {
           mx-auto h-8 w-8 animate-spin
           rounded-full border-4
           border-slate-200
-          border-t-[#176B62]
+          border-t-[#087F68]
         " />
 
         <p className="

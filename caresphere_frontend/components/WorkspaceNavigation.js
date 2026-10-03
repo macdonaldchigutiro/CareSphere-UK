@@ -107,7 +107,7 @@ export default function WorkspaceNavigation() {
   if (isProvider) {
     return (
       <>
-        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col bg-[#061B2C] text-white shadow-2xl lg:flex">
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] flex-col bg-[#043C36] text-white shadow-2xl lg:flex">
           <Link href="/provider-dashboard" className="border-b border-white/10 px-6 py-6">
             <CareSphereLogo light context="Provider" className="[&>svg]:h-11 [&>svg]:w-11" />
           </Link>

@@ -549,7 +549,7 @@ export default function Home() {
           HERO
       ====================================================== */}
 
-      <section className="relative overflow-hidden bg-[#071A2B]">
+      <section className="relative overflow-hidden bg-[#032F2B]">
         <div className="absolute -left-24 top-10 h-80 w-80 rounded-full bg-[#0F766E]/30 blur-3xl" />
         <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
 
@@ -876,7 +876,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleMatch}
-                  className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#071A2B] py-3.5 text-sm font-bold text-white transition hover:bg-slate-800"
+                  className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#032F2B] py-3.5 text-sm font-bold text-white transition hover:bg-slate-800"
                 >
                   Update matches
                   <ArrowRight className="h-4 w-4" />
@@ -1051,7 +1051,7 @@ export default function Home() {
           FAMILY COLLABORATION
       ====================================================== */}
 
-      <section id="families" className="bg-[#071A2B] py-20">
+      <section id="families" className="bg-[#032F2B] py-20">
         <div className="mx-auto grid max-w-[1500px] gap-10 px-5 lg:grid-cols-2 lg:items-center lg:px-8">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-[#6EE7D8]">
@@ -1071,7 +1071,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
-                className="rounded-xl bg-[#6EE7D8] px-6 py-3 font-bold text-[#071A2B] transition hover:bg-white"
+                className="rounded-xl bg-[#6EE7D8] px-6 py-3 font-bold text-[#032F2B] transition hover:bg-white"
               >
                 Create family circle
               </button>

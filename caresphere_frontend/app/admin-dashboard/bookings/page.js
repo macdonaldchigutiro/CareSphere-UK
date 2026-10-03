@@ -184,7 +184,7 @@ export default function AdminBookingsPage() {
                   items-center justify-center
                   rounded-2xl
                   bg-teal-50
-                  text-[#176B62]
+                  text-[#087F68]
                 ">
                   <Clock3 className="h-5 w-5" />
                 </div>
@@ -688,7 +688,7 @@ function SummaryCard({
             ${
               warning
                 ? "bg-rose-50 text-rose-600"
-                : "bg-slate-50 text-[#176B62]"
+                : "bg-slate-50 text-[#087F68]"
             }
           `}
         >
@@ -762,7 +762,7 @@ function LoadingState() {
           animate-spin
           rounded-full
           border-4 border-slate-200
-          border-t-[#176B62]
+          border-t-[#087F68]
         " />
 
         <p className="

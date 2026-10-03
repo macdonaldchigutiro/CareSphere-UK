@@ -1430,7 +1430,7 @@ function FamilyDecisionsContent() {
 
         {/* HERO */}
 
-        <section className="rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12">
+        <section className="rounded-[32px] bg-[#032F2B] px-7 py-10 text-white shadow-xl md:px-10 md:py-12">
 
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
 
@@ -1470,7 +1470,7 @@ function FamilyDecisionsContent() {
                   onClick={() =>
                     setShowForm(true)
                   }
-                  className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#6EE7D8] px-6 py-3 font-bold text-[#071A2B] transition hover:bg-white"
+                  className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#6EE7D8] px-6 py-3 font-bold text-[#032F2B] transition hover:bg-white"
                 >
 
                   <Plus className="h-5 w-5" />

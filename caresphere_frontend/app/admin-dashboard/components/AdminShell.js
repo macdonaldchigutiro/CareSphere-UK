@@ -406,7 +406,7 @@ export default function AdminShell({
               items-center justify-center
               rounded-2xl
               bg-white
-              text-[#176B62]
+              text-[#087F68]
               shadow-lg
             ">
               <HeartHandshake
@@ -729,7 +729,7 @@ export default function AdminShell({
                 items-center
                 justify-center
                 rounded-xl
-                bg-[#176B62]
+                bg-[#087F68]
                 font-black
                 text-white
               ">

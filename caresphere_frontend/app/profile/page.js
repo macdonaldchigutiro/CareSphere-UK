@@ -435,7 +435,7 @@ export default function ProfilePage() {
 
         {/* HERO */}
 
-        <section className="overflow-hidden rounded-[32px] bg-[#071A2B] px-7 py-10 text-white shadow-xl md:px-10">
+        <section className="overflow-hidden rounded-[32px] bg-[#032F2B] px-7 py-10 text-white shadow-xl md:px-10">
 
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
 

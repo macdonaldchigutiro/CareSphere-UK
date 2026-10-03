@@ -283,7 +283,7 @@ export default function AdminMatchingPage() {
                 items-center justify-center
                 rounded-2xl
                 bg-teal-50
-                text-[#176B62]
+                text-[#087F68]
               ">
                 <Activity className="h-5 w-5" />
               </div>
@@ -550,7 +550,7 @@ function MatchRow({
             items-center justify-center
             rounded-2xl
             bg-teal-50
-            text-[#176B62]
+            text-[#087F68]
           ">
             <UserSearch className="h-5 w-5" />
           </div>
@@ -620,7 +620,7 @@ function MatchRow({
             <div
               className="
                 h-full rounded-full
-                bg-[#176B62]
+                bg-[#087F68]
               "
               style={{
                 width: `${Math.min(
@@ -912,7 +912,7 @@ function SummaryCard({
           items-center justify-center
           rounded-xl
           bg-slate-50
-          text-[#176B62]
+          text-[#087F68]
         ">
           <Icon className="h-5 w-5" />
         </div>
@@ -1022,7 +1022,7 @@ function LoadingState() {
           animate-spin
           rounded-full
           border-4 border-slate-200
-          border-t-[#176B62]
+          border-t-[#087F68]
         " />
 
         <p className="

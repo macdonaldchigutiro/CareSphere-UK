@@ -178,7 +178,7 @@ function LoginContent() {
 
         {/* LEFT PANEL */}
 
-        <section className="relative hidden overflow-hidden bg-[#071A2B] p-12 lg:flex lg:flex-col lg:justify-between">
+        <section className="relative hidden overflow-hidden bg-[#032F2B] p-12 lg:flex lg:flex-col lg:justify-between">
 
           <div className="absolute -left-32 top-16 h-96 w-96 rounded-full bg-[#0F766E]/30 blur-3xl" />
 

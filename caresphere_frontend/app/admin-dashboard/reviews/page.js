@@ -293,7 +293,7 @@ export default function AdminReviewsPage() {
                 flex h-11 w-11
                 items-center justify-center
                 rounded-2xl bg-teal-50
-                text-[#176B62]
+                text-[#087F68]
               ">
                 <MessageSquareText className="h-5 w-5" />
               </div>
@@ -607,7 +607,7 @@ function ReviewRow({
             }
             className="
               h-10 rounded-xl
-              bg-[#176B62] px-4
+              bg-[#087F68] px-4
               text-xs font-black text-white
               hover:bg-[#0D574F]
               disabled:bg-slate-200
@@ -791,7 +791,7 @@ function LoadingState() {
       <div className="
         h-8 w-8 animate-spin
         rounded-full border-4
-        border-slate-200 border-t-[#176B62]
+        border-slate-200 border-t-[#087F68]
       " />
     </div>
   );

@@ -99,8 +99,8 @@ function MetricCard({
 }) {
   const tones = {
     teal: {
-      border: "border-l-[#176B62]",
-      icon: "bg-teal-50 text-[#176B62]",
+      border: "border-l-[#087F68]",
+      icon: "bg-teal-50 text-[#087F68]",
     },
     blue: {
       border: "border-l-blue-600",
@@ -197,7 +197,7 @@ function AttentionItem({
     blue:
       "bg-blue-50 text-blue-700",
     teal:
-      "bg-teal-50 text-[#176B62]",
+      "bg-teal-50 text-[#087F68]",
   };
 
   return (
@@ -335,7 +335,7 @@ export default function AdminOverviewPage() {
             className="
               mx-auto h-8 w-8
               animate-pulse
-              text-[#176B62]
+              text-[#087F68]
             "
           />
 
@@ -808,7 +808,7 @@ export default function AdminOverviewPage() {
                           className="
                             h-full
                             rounded-full
-                            bg-[#176B62]
+                            bg-[#087F68]
                           "
                           style={{
                             width:
@@ -859,7 +859,7 @@ export default function AdminOverviewPage() {
 
             <CalendarDays className="
               h-5 w-5
-              text-[#176B62]
+              text-[#087F68]
             " />
           </div>
 
@@ -898,7 +898,7 @@ export default function AdminOverviewPage() {
                         justify-center
                         rounded-xl
                         bg-teal-50
-                        text-[#176B62]
+                        text-[#087F68]
                       ">
                         <HeartHandshake
                           className="h-5 w-5"
@@ -1084,7 +1084,7 @@ export default function AdminOverviewPage() {
                     font-black
                     uppercase
                     tracking-wide
-                    text-[#176B62]
+                    text-[#087F68]
                   ">
                     {
                       recentUser.user_type

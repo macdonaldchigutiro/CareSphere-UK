@@ -782,7 +782,7 @@ export default function ProviderStaffPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#F7FAFC]">
         <div className="text-center">
-          <Loader2 className="mx-auto h-9 w-9 animate-spin text-[#176B62]" />
+          <Loader2 className="mx-auto h-9 w-9 animate-spin text-[#087F68]" />
 
           <p className="mt-4 text-sm font-medium text-slate-600">
             Loading staff management...
@@ -810,7 +810,7 @@ export default function ProviderStaffPage() {
             href="/provider-dashboard"
             className="flex items-center gap-3"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#176B62] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#087F68] text-white">
               <HeartHandshake className="h-5 w-5" />
             </div>
 
@@ -844,7 +844,7 @@ export default function ProviderStaffPage() {
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
 
           <div>
-            <p className="text-sm font-semibold text-[#176B62]">
+            <p className="text-sm font-semibold text-[#087F68]">
               WORKFORCE
             </p>
 
@@ -860,7 +860,7 @@ export default function ProviderStaffPage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#176B62] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#12564F]"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#087F68] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#12564F]"
           >
             <Plus className="h-4 w-4" />
             Add Staff Member
@@ -933,7 +933,7 @@ export default function ProviderStaffPage() {
                   )
                 }
                 placeholder="Search staff by name, role, qualification or language..."
-                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#176B62]"
+                className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#087F68]"
               />
             </div>
 
@@ -954,7 +954,7 @@ export default function ProviderStaffPage() {
                     }
                     className={`rounded-xl px-4 py-2 text-sm font-semibold ${
                       filter === value
-                        ? "bg-[#176B62] text-white"
+                        ? "bg-[#087F68] text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
@@ -991,7 +991,7 @@ export default function ProviderStaffPage() {
                 <button
                   type="button"
                   onClick={openAddForm}
-                  className="mt-5 rounded-xl bg-[#176B62] px-5 py-2.5 text-sm font-semibold text-white"
+                  className="mt-5 rounded-xl bg-[#087F68] px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Add First Staff Member
                 </button>
@@ -1351,7 +1351,7 @@ export default function ProviderStaffPage() {
                     )
                   }
                   placeholder="Brief professional biography, care experience and strengths..."
-                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-[#176B62]"
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm outline-none focus:border-[#087F68]"
                 />
 
               </FormSection>
@@ -1378,7 +1378,7 @@ export default function ProviderStaffPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#176B62] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#087F68] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                 >
                   {saving ? (
                     <>
@@ -1429,7 +1429,7 @@ function StatCard({
           </p>
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-[#176B62]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-[#087F68]">
           <Icon className="h-5 w-5" />
         </div>
 
@@ -1450,7 +1450,7 @@ function StaffCard({
 
       <div className="flex items-start gap-4">
 
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#176B62] text-sm font-bold text-white">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#087F68] text-sm font-bold text-white">
           {getInitials(member)}
         </div>
 
@@ -1464,7 +1464,7 @@ function StaffCard({
                   `${member.first_name} ${member.last_name}`}
               </h2>
 
-              <p className="mt-1 text-sm font-medium text-[#176B62]">
+              <p className="mt-1 text-sm font-medium text-[#087F68]">
                 {formatRole(
                   member.role
                 )}
@@ -1675,7 +1675,7 @@ function Input({
             event.target.value
           )
         }
-        className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#176B62]"
+        className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-[#087F68]"
       />
 
       {helper && (
@@ -1709,7 +1709,7 @@ function Select({
             event.target.value
           )
         }
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#176B62]"
+        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#087F68]"
       >
         {options.map(
           ([key, name]) => (
@@ -1748,7 +1748,7 @@ function Toggle({
             event.target.checked
           )
         }
-        className="h-4 w-4 accent-[#176B62]"
+        className="h-4 w-4 accent-[#087F68]"
       />
 
     </label>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --cs-navy-950: #061b2c;
+  --cs-navy-950: #043C36;
   --cs-navy-900: #0a2438;
   --cs-teal-700: #087c76;
   --cs-teal-600: #0b9188;
@@ -198,7 +198,7 @@ a {
 
 ::selection {
   background: rgba(15, 118, 110, 0.2);
-  color: #071a2b;
+  color: #032F2B;
 }
 
 /* ======================================================
@@ -287,3 +287,28 @@ textarea:focus-visible {
     overflow-x: hidden;
   }
 }
+
+/* CareSphere locked future-green visual foundation */
+:root {
+  --cs-forest-950: #022d29;
+  --cs-forest-900: #032f2b;
+  --cs-forest-800: #043c36;
+  --cs-emerald-700: #087f68;
+  --cs-emerald-600: #0b9a7c;
+  --cs-emerald-500: #16b89a;
+  --cs-mint-300: #72f0c5;
+  --cs-mint-100: #d9f8eb;
+  --cs-mint-50: #f0fcf7;
+  --cs-canvas: #f4f9f7;
+  --cs-ink: #123b36;
+  --cs-border: #d7e8e2;
+}
+
+body {
+  background:
+    radial-gradient(circle at 88% -8%, rgba(22,184,154,.13), transparent 34rem),
+    var(--cs-canvas);
+  color: var(--cs-ink);
+}
+
+::selection { background: rgba(114,240,197,.42); color: var(--cs-forest-950); }

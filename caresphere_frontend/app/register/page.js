@@ -140,7 +140,7 @@ export default function RegisterPage() {
     <main className="min-h-screen bg-[#F7FAFC]">
       <div className="grid min-h-screen lg:grid-cols-2">
         {/* LEFT PANEL */}
-        <section className="relative hidden overflow-hidden bg-[#071A2B] p-12 lg:flex lg:flex-col lg:justify-between">
+        <section className="relative hidden overflow-hidden bg-[#032F2B] p-12 lg:flex lg:flex-col lg:justify-between">
           <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-[#0F766E]/30 blur-3xl" />
           <div className="absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
 
