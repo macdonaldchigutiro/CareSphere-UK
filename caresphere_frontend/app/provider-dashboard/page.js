@@ -1,23 +1,28 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
+  ArrowUpRight,
   Bell,
   Building2,
+  CalendarPlus,
   CalendarDays,
   CheckCircle2,
   Clock3,
   HeartHandshake,
   Loader2,
+  LockKeyhole,
+  MapPin,
   Mail,
+  Megaphone,
   MessageSquareText,
   Play,
   Search,
   ShieldCheck,
   User,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -107,6 +112,8 @@ export default function ProviderDashboardPage() {
     unreadNotifications,
     setUnreadNotifications,
   ] = useState(0);
+
+  const [showLiveNames, setShowLiveNames] = useState(false);
 
 
   // ======================================================
@@ -665,6 +672,52 @@ export default function ProviderDashboardPage() {
 
       return { today, onVisit, startingSoon, lateCheckIns, missed };
     }, [bookings]);
+
+  const sevenDayCoverage = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return Array.from({ length: 7 }, (_, dayOffset) => {
+      const start = new Date(today);
+      start.setDate(start.getDate() + dayOffset);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 1);
+
+      const visits = bookings.filter((booking) => {
+        const bookingStart = new Date(booking.start_time).getTime();
+        return (
+          !Number.isNaN(bookingStart) &&
+          bookingStart >= start.getTime() &&
+          bookingStart < end.getTime() &&
+          !["cancelled", "declined"].includes(booking.status)
+        );
+      });
+      const uncovered = visits.filter(
+        (booking) => booking.status === "accepted" && !booking.assigned_staff
+      );
+      const percentage = visits.length
+        ? Math.round(((visits.length - uncovered.length) / visits.length) * 100)
+        : 100;
+
+      return {
+        label: new Intl.DateTimeFormat("en-GB", { weekday: "short" }).format(start),
+        percentage,
+        needsCover: uncovered.length > 0,
+      };
+    });
+  }, [bookings]);
+
+  const shiftsToFill = useMemo(
+    () =>
+      [...next72HourUncovered]
+        .sort(
+          (left, right) =>
+            new Date(left.start_time).getTime() -
+            new Date(right.start_time).getTime()
+        )
+        .slice(0, 3),
+    [next72HourUncovered]
+  );
 
   const confirmedBookings =
     useMemo(
@@ -1562,6 +1615,74 @@ export default function ProviderDashboardPage() {
           </div>
         </section>
 
+        <section className="cs-enter mt-7 rounded-[22px] border border-[#E3E9E7] bg-white p-5 shadow-[0_8px_24px_rgba(18,37,32,0.04)] sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#087765]">Live care operations</p>
+              <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">See where care needs attention</h2>
+              <p className="mt-1 text-sm leading-6 text-[#5B6B67]">Operational view only. Updates refresh as visit statuses change.</p>
+            </div>
+            <label className="inline-flex min-h-11 w-fit cursor-pointer items-center gap-3 rounded-full border border-[#E3E9E7] bg-[#FAFCFB] px-4 text-sm font-semibold text-[#5B6B67]">
+              <input
+                type="checkbox"
+                checked={showLiveNames}
+                onChange={(event) => setShowLiveNames(event.target.checked)}
+                className="sr-only"
+              />
+              <span className={`relative h-6 w-10 rounded-full transition ${showLiveNames ? "bg-[#087765]" : "bg-[#DDE5E2]"}`}>
+                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition ${showLiveNames ? "left-5" : "left-1"}`} />
+              </span>
+              {showLiveNames ? "Hide names" : "Show names"}
+            </label>
+          </div>
+
+          <div className="relative mt-5 h-[300px] overflow-hidden rounded-[20px] border border-[#DCE6E3] bg-[#E8EFEC] sm:h-[370px]">
+            <div className="absolute inset-x-[-10%] top-[24%] h-3 rotate-[-5deg] bg-white/80" />
+            <div className="absolute inset-x-[-10%] top-[69%] h-3 rotate-[7deg] bg-white/80" />
+            <div className="absolute bottom-[-16%] left-[26%] h-[140%] w-3 rotate-[-12deg] bg-white/80" />
+            <div className="absolute bottom-[-16%] right-[23%] h-[140%] w-3 rotate-[8deg] bg-white/80" />
+            <div className="absolute inset-x-[-10%] top-[48%] h-16 rotate-[-4deg] bg-[#D8E9ED]/90" />
+
+            {[
+              ["18%", "31%", false],
+              ["46%", "24%", false],
+              ["72%", "37%", true],
+              ["31%", "71%", false],
+              ["68%", "75%", false],
+            ].map(([left, top, attention], index) => (
+              <button
+                key={`${left}-${top}`}
+                type="button"
+                onClick={() => setActiveFilter(attention ? "unassigned" : "in_progress")}
+                aria-label={attention ? "Visit needs cover" : "Carer on visit or en route"}
+                className={`absolute grid h-7 w-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] shadow-[0_0_0_5px_rgba(255,255,255,0.42)] transition hover:scale-110 ${attention ? "border-[#F3E5B9] bg-[#C9A24B]" : "border-[#B8DDD3] bg-[#0E8B73]"}`}
+                style={{ left, top }}
+              >
+                <span className="sr-only">Map point {index + 1}</span>
+              </button>
+            ))}
+
+            {liveOperations.onVisit[0] && (
+              <div className="absolute left-4 top-5 max-w-[240px] rounded-2xl bg-white px-4 py-3 shadow-[0_12px_30px_rgba(18,37,32,0.15)]">
+                <p className="truncate text-sm font-bold text-[#122520]">
+                  {showLiveNames ? getCareRecipientName(liveOperations.onVisit[0]) : "Active care visit"}
+                </p>
+                <p className="mt-1 text-xs text-[#5B6B67]">Carer with client · {formatTime(liveOperations.onVisit[0].start_time)}</p>
+              </div>
+            )}
+
+            <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-x-5 gap-y-2 rounded-xl bg-white/95 px-4 py-3 text-xs font-semibold text-[#5B6B67] shadow-sm backdrop-blur">
+              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#0E8B73]" />Carer on visit or en route</span>
+              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#C9A24B]" />Visit needs cover</span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 text-xs text-[#6B7C77]">
+            <LockKeyhole className="h-4 w-4 text-[#087765]" />
+            Names are hidden by default. Map access is role-controlled and audited.
+          </div>
+        </section>
+
         <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
           <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-6 shadow-[0_8px_24px_rgba(18,37,32,0.04)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1687,6 +1808,134 @@ export default function ProviderDashboardPage() {
             )}
           </article>
         </section>
+
+        <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-5 shadow-[0_8px_24px_rgba(18,37,32,0.04)] sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#087765]">Coverage, next 72 hours</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Forward rota confidence</h2>
+              </div>
+              <span className="text-4xl font-semibold tabular-nums tracking-[-0.05em] text-[#0F1E1B]">{next72HourCoverage}%</span>
+            </div>
+            <div className="mt-6 grid grid-cols-7 gap-2 sm:gap-3">
+              {sevenDayCoverage.map((day) => (
+                <div key={day.label} className="text-center">
+                  <div className="flex h-24 items-end overflow-hidden rounded-xl bg-[#EDF2F0]">
+                    <div
+                      className={`w-full rounded-xl ${day.needsCover ? "bg-[#C9A24B]" : "bg-[#0E8B73]"}`}
+                      style={{ height: `${Math.max(day.percentage, 12)}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs font-bold tabular-nums text-[#122520]">{day.percentage}%</p>
+                  <p className="mt-0.5 text-[11px] text-[#71817C]">{day.label}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-5 shadow-[0_8px_24px_rgba(18,37,32,0.04)] sm:p-6">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#087765]">Shifts to fill</p>
+              <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Close coverage gaps</h2>
+            </div>
+            {shiftsToFill.length ? (
+              <div className="mt-5 space-y-3">
+                {shiftsToFill.map((booking) => (
+                  <div key={booking.id} className="flex flex-col gap-3 rounded-2xl bg-[#F7F9F8] p-4 sm:flex-row sm:items-center">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-[#122520]">{formatDate(booking.start_time)}</p>
+                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-[#5B6B67]"><MapPin className="h-3.5 w-3.5" />{booking.care_type || "Care visit"}</p>
+                    </div>
+                    <button type="button" onClick={() => setActiveFilter("unassigned")} className="cs-button-primary px-5 text-sm">Assign</button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-[#DDEAE5] bg-[#F3F9F6] p-5">
+                <CheckCircle2 className="h-6 w-6 text-[#12805C]" />
+                <p className="mt-3 text-sm font-bold text-[#174E45]">All shifts are covered</p>
+                <p className="mt-1 text-xs leading-5 text-[#5B6B67]">CareSphere will surface the next staffing gap here automatically.</p>
+              </div>
+            )}
+          </article>
+        </section>
+
+        <section className="cs-enter mt-7 rounded-[22px] border border-[#E3E9E7] bg-white p-5 shadow-[0_8px_24px_rgba(18,37,32,0.04)] sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#087765]">CQC evidence readiness</p>
+              <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Your evidence workspace</h2>
+              <p className="mt-1 text-sm leading-6 text-[#5B6B67]">Organise evidence against the Single Assessment Framework. This is not a CQC rating or guarantee.</p>
+            </div>
+            <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">View evidence →</Link>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {["Safe care", "Effective care", "Caring support", "Well-led service"].map((area) => (
+              <div key={area} className="flex min-h-16 items-center gap-3 rounded-2xl bg-[#F7F9F8] px-4">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#E4F4ED] text-[#087765]"><CheckCircle2 className="h-4 w-4" /></span>
+                <span className="text-sm font-semibold text-[#435650]">{area}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-6 shadow-[0_8px_24px_rgba(18,37,32,0.04)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#087765]">Quick actions</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Move work forward</h2>
+                <p className="mt-1 text-sm leading-6 text-[#5B6B67]">The most common coordinator tasks, without hunting through menus.</p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Link href="/provider-staff" className="flex min-h-16 items-center gap-3 rounded-2xl border border-[#E3E9E7] bg-[#FAFCFB] px-4 text-sm font-bold text-[#17352E] transition hover:border-[#BFD5CE] hover:bg-[#F3F8F6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#E6F4EF] text-[#087765]"><UserPlus className="h-5 w-5" /></span>
+                Add team member
+                <ArrowUpRight className="ml-auto h-4 w-4 text-[#71817C]" />
+              </Link>
+              <button type="button" onClick={() => setActiveFilter("unassigned")} className="flex min-h-16 items-center gap-3 rounded-2xl border border-[#E3E9E7] bg-[#FAFCFB] px-4 text-left text-sm font-bold text-[#17352E] transition hover:border-[#BFD5CE] hover:bg-[#F3F8F6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F7F0DD] text-[#8A681A]"><CalendarPlus className="h-5 w-5" /></span>
+                Fill rota gaps
+                <ArrowUpRight className="ml-auto h-4 w-4 text-[#71817C]" />
+              </button>
+              <Link href="/provider-availability" className="flex min-h-16 items-center gap-3 rounded-2xl border border-[#E3E9E7] bg-[#FAFCFB] px-4 text-sm font-bold text-[#17352E] transition hover:border-[#BFD5CE] hover:bg-[#F3F8F6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#E6F4EF] text-[#087765]"><CalendarDays className="h-5 w-5" /></span>
+                Update capacity
+                <ArrowUpRight className="ml-auto h-4 w-4 text-[#71817C]" />
+              </Link>
+              <Link href="/notifications" className="flex min-h-16 items-center gap-3 rounded-2xl border border-[#E3E9E7] bg-[#FAFCFB] px-4 text-sm font-bold text-[#17352E] transition hover:border-[#BFD5CE] hover:bg-[#F3F8F6]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F0F2F7] text-[#526183]"><Megaphone className="h-5 w-5" /></span>
+                Send notification
+                <ArrowUpRight className="ml-auto h-4 w-4 text-[#71817C]" />
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-[22px] border border-[#E3E9E7] bg-white p-6 shadow-[0_8px_24px_rgba(18,37,32,0.04)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-bold uppercase tracking-[0.14em] text-[#087765]">Marketplace pulse</p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Care demand</h2>
+                <p className="mt-1 text-sm leading-6 text-[#5B6B67]">Real activity from your current CareSphere care journey.</p>
+              </div>
+              <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">Improve profile →</Link>
+            </div>
+            <dl className="mt-5 divide-y divide-[#E9EFEC]">
+              <div className="flex items-center justify-between gap-4 py-3 first:pt-0"><dt className="text-sm text-[#5B6B67]">New care requests</dt><dd className="text-lg font-bold tabular-nums text-[#122520]">{pendingBookings.length}</dd></div>
+              <div className="flex items-center justify-between gap-4 py-3"><dt className="text-sm text-[#5B6B67]">Active care journeys</dt><dd className="text-lg font-bold tabular-nums text-[#122520]">{activeBookings.length}</dd></div>
+              <div className="flex items-center justify-between gap-4 py-3"><dt className="text-sm text-[#5B6B67]">Awaiting staff assignment</dt><dd className={`text-lg font-bold tabular-nums ${unassignedBookings.length ? "text-[#B7791F]" : "text-[#12805C]"}`}>{unassignedBookings.length}</dd></div>
+              <div className="flex items-center justify-between gap-4 pt-3"><dt className="text-sm text-[#5B6B67]">Completed care</dt><dd className="text-lg font-bold tabular-nums text-[#122520]">{completedBookings.length}</dd></div>
+            </dl>
+          </article>
+        </section>
+
+        <footer className="cs-enter mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#E3E9E7] py-5 text-[13px] font-medium text-[#5B6B67]">
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#087765]" /> CQC evidence workspace</span>
+          <span className="inline-flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-[#087765]" /> Encrypted data with complete audit history</span>
+          <span className="ml-auto text-[#71817C]">CareSphere Provider Command Centre</span>
+        </footer>
 
         <section hidden className="cs-enter grid gap-4 xl:grid-cols-[1.15fr_1fr_0.72fr]">
           <article className="cs-surface p-5">
