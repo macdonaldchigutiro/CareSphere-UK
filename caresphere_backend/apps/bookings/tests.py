@@ -161,6 +161,43 @@ class ThreeRoleCareJourneyTests(APITestCase):
         self.assertEqual(booking.status, Booking.Status.CONFIRMED)
         self.assertEqual(booking.assigned_staff, self.staff)
 
+        # Verify delivery, not just the scheduling half of the journey.
+        self.client.force_authenticate(self.provider_user)
+        premature_complete = self.client.post(f"/api/bookings/{booking_id}/complete/")
+        self.assertEqual(premature_complete.status_code, status.HTTP_400_BAD_REQUEST)
+        started = self.client.post(f"/api/bookings/{booking_id}/start/")
+        self.assertEqual(started.status_code, status.HTTP_200_OK)
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, Booking.Status.IN_PROGRESS)
+
+        self.client.force_authenticate(self.family_user)
+        family_detail = self.client.get(f"/api/bookings/{booking_id}/")
+        self.assertEqual(family_detail.status_code, status.HTTP_200_OK)
+        self.assertEqual(family_detail.data["status"], Booking.Status.IN_PROGRESS)
+        forbidden_complete = self.client.post(f"/api/bookings/{booking_id}/complete/")
+        self.assertEqual(forbidden_complete.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(self.provider_user)
+        finished = self.client.post(f"/api/bookings/{booking_id}/complete/")
+        self.assertEqual(finished.status_code, status.HTTP_200_OK)
+        repeated = self.client.post(f"/api/bookings/{booking_id}/complete/")
+        self.assertEqual(repeated.status_code, status.HTTP_400_BAD_REQUEST)
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, Booking.Status.COMPLETED)
+
+        for actor in (self.family_user, self.admin):
+            self.client.force_authenticate(actor)
+            detail = self.client.get(f"/api/bookings/{booking_id}/")
+            self.assertEqual(detail.status_code, status.HTTP_200_OK)
+            self.assertEqual(detail.data["status"], Booking.Status.COMPLETED)
+
+        for title in ("Care started", "Care completed"):
+            notifications = Notification.objects.filter(
+                recipient=self.family_user, title=title,
+            )
+            self.assertEqual(notifications.count(), 1)
+            self.assertEqual(notifications.get().link, "/bookings")
+
     def test_booking_lists_and_provider_actions_are_isolated_by_role(self):
         other_provider_user = User.objects.create_user(
             username="other-provider-journey@example.com",
