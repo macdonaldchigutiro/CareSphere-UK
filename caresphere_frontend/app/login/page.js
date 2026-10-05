@@ -173,7 +173,7 @@ function LoginContent() {
   // ======================================================
 
   return (
-    <main className="min-h-screen bg-[#F7FAFC]">
+    <main className="cs-login-theme min-h-screen bg-[#F7F9F8]">
       <div className="grid min-h-screen lg:grid-cols-2">
 
         {/* LEFT PANEL */}
@@ -184,27 +184,9 @@ function LoginContent() {
 
           <div className="absolute -bottom-32 right-0 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" />
 
-          <Link
-            href="/"
-            className="relative z-10 flex w-fit items-center gap-3 text-white"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0F766E]">
-              <HeartHandshake className="h-6 w-6" />
-            </div>
-
-            <div>
-              <div className="text-xl font-extrabold">
-                CareSphere{" "}
-                <span className="text-[#6EE7D8]">
-                  UK
-                </span>
-              </div>
-
-              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                Care with confidence
-              </div>
-            </div>
-          </Link>
+          <Link href="/" aria-label="CareSphere home" className="cs-login-brand relative z-10 w-fit">
+  <img src="/images/caresphere-approved-logo.png" alt="CareSphere UK - Care with confidence" style={{ width: 300, maxWidth: "100%", height: "auto", display: "block" }} />
+</Link>
 
           <div className="relative z-10 max-w-xl">
 
@@ -247,13 +229,9 @@ function LoginContent() {
 
           <div className="w-full max-w-md">
 
-            <Link
-              href="/"
-              className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-[#0F766E] lg:hidden"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to CareSphere
-            </Link>
+            <Link href="/" aria-label="CareSphere home" className="mb-10 inline-flex lg:hidden">
+  <img src="/images/caresphere-approved-logo.png" alt="CareSphere UK" style={{ width: 240, maxWidth: "100%", height: "auto" }} />
+</Link>
 
             <div className="mb-8">
 

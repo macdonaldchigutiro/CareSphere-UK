@@ -366,3 +366,25 @@ body.cs-provider-workspace aside nav svg {
     scroll-padding-top: 96px;
   }
 }
+/* CareSphere approved login theme */
+.cs-login-theme { background: #f7f9f8; color: #0f1e1b; }
+.cs-login-theme > div > section:first-child {
+  background: linear-gradient(145deg, #0b2b26, #0f3d35);
+}
+.cs-login-theme .cs-login-brand {
+  display: block; padding: 16px 20px; border-radius: 16px; background: #f7f9f8;
+}
+.cs-login-theme h1, .cs-login-theme h2 {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: -0.025em;
+}
+.cs-login-theme h2 { color: #0f1e1b; }
+.cs-login-theme > div > section:last-child p { color: #5b6b67; }
+.cs-login-theme button[type="submit"] { background: #0e7c6b; }
+.cs-login-theme button[type="submit"]:hover { background: #0b6658; }
+.cs-login-theme input:not([type="checkbox"]) {
+  background: #ffffff; color: #0f1e1b; border-color: #dce5e1;
+}
+.cs-login-theme input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: #0f1e1b;
+}
