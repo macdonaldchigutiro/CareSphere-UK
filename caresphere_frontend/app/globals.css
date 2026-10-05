@@ -353,3 +353,16 @@ body.cs-provider-workspace aside nav svg {
   height: 19px;
   flex-shrink: 0;
 }
+/* CareSphere persistent provider ribbon */
+@media (min-width: 1024px) {
+  body.cs-provider-workspace main > header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #ffffff;
+    box-shadow: 0 3px 12px rgba(15, 30, 27, 0.04);
+  }
+  body.cs-provider-workspace {
+    scroll-padding-top: 96px;
+  }
+}
