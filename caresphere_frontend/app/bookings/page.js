@@ -691,12 +691,12 @@ export default function BookingsPage() {
 
       {/* HEADER */}
 
-      {!isProvider && <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-200 bg-white">
 
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 lg:px-8">
 
           <Link
-            href="/"
+            href={dashboardPath}
             className="flex items-center gap-3"
           >
 
@@ -739,7 +739,7 @@ export default function BookingsPage() {
 
         </div>
 
-      </header>}
+      </header>
 
 
       {/* CONTENT */}
