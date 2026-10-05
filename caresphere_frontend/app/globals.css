@@ -316,3 +316,40 @@ body.cs-provider-workspace aside nav a { min-height:44px; gap:12px; font-size:13
 body.cs-provider-workspace aside nav svg { width:19px!important; height:19px!important; flex-shrink:0; }
 body.cs-provider-workspace aside nav a[aria-current="page"] { background:#ffffff12; box-shadow:inset 3px 0 #c9a24b; }
 }
+/* CareSphere provider theme consistency */
+body.cs-provider-workspace main {
+  background: #f7f9f8;
+  color: #0f1e1b;
+}
+body.cs-provider-workspace main h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  color: #0f1e1b;
+  letter-spacing: -0.025em;
+}
+body.cs-provider-workspace main .text-slate-500,
+body.cs-provider-workspace main .text-slate-600 {
+  color: #5b6b67;
+}
+body.cs-provider-workspace aside > a:first-child {
+  background: #f7f9f8;
+  margin: 20px 16px;
+  padding: 12px 8px;
+  border-radius: 12px;
+}
+body.cs-provider-workspace aside > a:first-child img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+body.cs-provider-workspace aside nav a {
+  min-height: 44px;
+  gap: 12px;
+  display: flex;
+  align-items: center;
+}
+body.cs-provider-workspace aside nav svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}

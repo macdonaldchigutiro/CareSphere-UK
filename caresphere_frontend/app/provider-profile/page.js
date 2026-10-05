@@ -1,4 +1,5 @@
 "use client";
+import CareSphereLogo from "../../components/CareSphereLogo";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -708,28 +709,11 @@ export default function ProviderProfilePage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-teal-600 p-2.5 text-white">
-              <HeartHandshake size={23} />
-            </div>
-
-            <div>
-              <p className="font-bold text-slate-900">
-                CareSphere
-              </p>
-
-              <p className="text-xs text-slate-500">
-                Provider Workspace
-              </p>
-            </div>
-          </div>
-
-          <Link
-            href="/provider-dashboard"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            <ArrowLeft size={17} />
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+          <Link href="/provider-dashboard" aria-label="CareSphere provider dashboard">
+            <CareSphereLogo context="Provider workspace" />
+          </Link>
+          <Link href="/provider-dashboard" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             Dashboard
           </Link>
         </div>
@@ -739,11 +723,11 @@ export default function ProviderProfilePage() {
         <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-teal-700">
-              Provider settings
+              Company profile
             </p>
 
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              My Provider Profile
+              Company profile
             </h1>
 
             <p className="mt-3 max-w-2xl text-slate-600">

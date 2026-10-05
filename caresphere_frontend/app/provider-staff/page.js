@@ -1,4 +1,5 @@
 "use client";
+import CareSphereLogo from "../../components/CareSphereLogo";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -804,35 +805,13 @@ export default function ProviderStaffPage() {
       {/* HEADER */}
 
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-
-          <Link
-            href="/provider-dashboard"
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#087F68] text-white">
-              <HeartHandshake className="h-5 w-5" />
-            </div>
-
-            <div>
-              <p className="font-bold">
-                CareSphere
-              </p>
-
-              <p className="text-xs text-slate-500">
-                Provider Workspace
-              </p>
-            </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+          <Link href="/provider-dashboard" aria-label="CareSphere provider dashboard">
+            <CareSphereLogo context="Provider workspace" />
           </Link>
-
-          <Link
-            href="/provider-dashboard"
-            className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <ArrowLeft className="h-4 w-4" />
+          <Link href="/provider-dashboard" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             Dashboard
           </Link>
-
         </div>
       </header>
 
