@@ -286,3 +286,21 @@ textarea:focus-visible {
     overflow-x: hidden;
   }
 }
+
+/* CareSphere sidebar visibility fix */
+@media (min-width: 1024px) {
+  body.cs-provider-workspace aside {
+    background: linear-gradient(180deg, #0B2B26, #0F3D35) !important;
+    color: #ffffff;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  body.cs-provider-workspace aside nav a {
+    gap: 12px;
+    color: #e4eeea;
+  }
+  body.cs-provider-workspace aside nav a[aria-current="page"] {
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
+    box-shadow: inset 3px 0 0 #C9A24B;
+  }
+}
