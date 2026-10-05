@@ -692,54 +692,13 @@ export default function BookingsPage() {
       {/* HEADER */}
 
       <header className="border-b border-slate-200 bg-white">
-
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 lg:px-8">
-
-          <Link
-            href={dashboardPath}
-            className="flex items-center gap-3"
-          >
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F766E] text-white">
-
-              <HeartHandshake className="h-6 w-6" />
-
-            </div>
-
-            <div>
-
-              <div className="text-xl font-extrabold tracking-tight">
-
-                CareSphere
-
-                <span className="text-[#0F766E]">
-                  {" "}UK
-                </span>
-
-              </div>
-
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Care with confidence
-              </div>
-
-            </div>
-
-          </Link>
-
-          <Link
-            href={dashboardPath}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-          >
-
-            <ArrowLeft className="h-4 w-4" />
-
-            Dashboard
-
-          </Link>
-
-        </div>
-
-      </header>
+  <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+    <Link href={dashboardPath} aria-label="CareSphere dashboard" style={{ minWidth: 0 }}>
+      <img src="/images/caresphere-approved-logo.png" alt="CareSphere UK â€” Care with confidence" style={{ width: 240, maxWidth: "100%", height: "auto", display: "block" }} />
+    </Link>
+    <Link href={dashboardPath} className="shrink-0 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Dashboard</Link>
+  </div>
+</header>
 
 
       {/* CONTENT */}
@@ -883,7 +842,7 @@ export default function BookingsPage() {
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#0F766E]">
 
                 {isProvider
-                  ? "Incoming requests"
+                  ? "All bookings"
                   : "Booking history"}
 
               </p>
@@ -893,10 +852,10 @@ export default function BookingsPage() {
                 {bookings.length ===
                 1
                   ? isProvider
-                    ? "1 care enquiry"
+                    ? "1 booking"
                     : "1 care request"
                   : isProvider
-                  ? `${bookings.length} care enquiries`
+                  ? `${bookings.length} bookings`
                   : `${bookings.length} care requests`}
 
               </h2>
@@ -921,7 +880,7 @@ export default function BookingsPage() {
                 }
                 placeholder={
                   isProvider
-                    ? "Search enquiries..."
+                    ? "Search bookings..."
                     : "Search bookings..."
                 }
                 className="cs-input w-full py-3.5 pl-12 pr-4 outline-none"
@@ -944,6 +903,8 @@ export default function BookingsPage() {
                   key={value}
                   type="button"
                   onClick={() => setStatusFilter(value)}
+                  aria-pressed={statusFilter === value}
+                  style={statusFilter === value ? { backgroundColor: "#0E7C6B", color: "#ffffff" } : undefined}
                   className={`rounded-full px-4 py-2 text-sm font-bold transition ${
                     statusFilter === value
                       ? "bg-[#0A2035] text-white"
