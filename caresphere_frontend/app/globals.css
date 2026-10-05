@@ -304,3 +304,15 @@ textarea:focus-visible {
     box-shadow: inset 3px 0 0 #C9A24B;
   }
 }
+/* CareSphere approved command centre sidebar */
+@media (min-width:1024px) {
+body.cs-provider-workspace aside { background:linear-gradient(160deg,#0b2b26,#113e34)!important; width:244px!important; color:#ebf2ee; }
+body.cs-provider-workspace { padding-left:244px!important; }
+body.cs-provider-workspace.cs-provider-workspace-collapsed aside { width:80px!important; }
+body.cs-provider-workspace.cs-provider-workspace-collapsed { padding-left:80px!important; }
+body.cs-provider-workspace aside > a:first-child { background:#f7faf7!important; margin:20px 16px; padding:12px 8px!important; border-radius:12px; }
+body.cs-provider-workspace aside > a:first-child img { max-width:100%; height:auto; }
+body.cs-provider-workspace aside nav a { min-height:44px; gap:12px; font-size:13px; padding:12px; margin-bottom:5px; }
+body.cs-provider-workspace aside nav svg { width:19px!important; height:19px!important; flex-shrink:0; }
+body.cs-provider-workspace aside nav a[aria-current="page"] { background:#ffffff12; box-shadow:inset 3px 0 #c9a24b; }
+}

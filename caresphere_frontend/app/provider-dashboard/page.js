@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ProviderCommandCentre from "../../components/ProviderCommandCentre";
 import { useRouter } from "next/navigation";
 
 import {
@@ -1309,7 +1310,7 @@ export default function ProviderDashboardPage() {
       if (overdue) {
         return {
           label:
-            "OVERDUE — SHIFT START TIME PASSED",
+            "OVERDUE â€” SHIFT START TIME PASSED",
           classes:
             "border-red-300 bg-red-100 text-red-800",
         };
@@ -1318,7 +1319,7 @@ export default function ProviderDashboardPage() {
       if (urgent) {
         return {
           label:
-            "URGENT — STARTS WITHIN 24 HOURS",
+            "URGENT â€” STARTS WITHIN 24 HOURS",
           classes:
             "border-orange-300 bg-orange-100 text-orange-800",
         };
@@ -1327,7 +1328,7 @@ export default function ProviderDashboardPage() {
       if (availableCount === 0) {
         return {
           label:
-            "STAFFING RISK — NO STAFF AVAILABLE",
+            "STAFFING RISK â€” NO STAFF AVAILABLE",
           classes:
             "border-red-200 bg-red-50 text-red-700",
         };
@@ -1339,7 +1340,7 @@ export default function ProviderDashboardPage() {
       ) {
         return {
           label:
-            `NEEDS ASSIGNMENT — ${availableCount} AVAILABLE`,
+            `NEEDS ASSIGNMENT â€” ${availableCount} AVAILABLE`,
           classes:
             "border-amber-200 bg-amber-50 text-amber-700",
         };
@@ -1489,132 +1490,7 @@ export default function ProviderDashboardPage() {
             WELCOME
         ================================================== */}
 
-        <header className="cs-enter mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              }).format(new Date())}
-            </p>
-            <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] text-[#0F1E1B] md:text-[36px]">
-              {isNewAccount ? "Welcome" : getGreeting()}, {getFirstName()}
-            </h1>
-            <p className="mt-2 text-sm text-[#5B6B67]">Here&apos;s what needs your attention across your care service.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="relative hidden xl:block">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search people, staff or bookings..."
-                className="cs-input w-80 py-2 pl-10 pr-4 text-sm outline-none"
-              />
-            </label>
-            <div className="flex min-h-10 items-center gap-2 rounded-full bg-[#E7F5EF] px-4 text-xs font-bold text-[#12805C]">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#12805C]" />
-              All systems live
-            </div>
-          </div>
-        </header>
-
-        {/* Provider Command Centre: detect, explain, recommend, act, confirm. */}
-        <section className="cs-enter overflow-hidden rounded-[22px] border border-[#E3E9E7] bg-white shadow-[0_10px_32px_rgba(18,37,32,0.055)]">
-          <div className="grid lg:grid-cols-[0.86fr_1.14fr]">
-            <div className="border-b border-[#E8ECEB] bg-white p-6 text-[#122520] md:p-7 lg:border-b-0 lg:border-r">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#087765]">
-                    72-hour coverage radar
-                  </p>
-                  <p className="mt-2 text-sm text-[#5B6B67]">
-                    Forward staffing protection
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#EAF6F1] px-3 py-1.5 text-xs font-bold text-[#087765]">
-                  <span className={`h-2 w-2 rounded-full ${next72HourCoverage === 100 ? "bg-[#8CE0CD]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`} />
-                  Live
-                </span>
-              </div>
-
-              <div className="mt-8 flex items-end gap-4">
-                <span className="text-6xl font-semibold tabular-nums tracking-[-0.06em]">
-                  {next72HourCoverage}%
-                </span>
-                <span className="pb-2 text-sm font-semibold text-[#5B6B67]">covered</span>
-              </div>
-
-              <div className="mt-6 h-2 overflow-hidden rounded-full bg-[#E5EBE9]">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${next72HourCoverage === 100 ? "bg-[#79D8C2]" : next72HourCoverage >= 85 ? "bg-[#D6B45B]" : "bg-red-400"}`}
-                  style={{ width: `${next72HourCoverage}%` }}
-                />
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#5B6B67]">
-                <span><strong className="text-[#122520]">{next72HourBookings.length}</strong> scheduled visits</span>
-                <span><strong className="text-[#122520]">{next72HourUncovered.length}</strong> need action</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 md:p-7">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Needs attention</p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.02em] text-[#0F1E1B]">
-                    {primaryAttentionBooking ? "Prevent the next staffing gap" : "Next 72 hours covered"}
-                  </h2>
-                </div>
-                <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${primaryAttentionBooking ? "bg-[#FFF4D8] text-[#8A5B14]" : "bg-[#E9F6F2] text-[#176B62]"}`}>
-                  {primaryAttentionBooking ? `${next72HourUncovered.length} action${next72HourUncovered.length === 1 ? "" : "s"}` : "Healthy"}
-                </span>
-              </div>
-
-              {primaryAttentionBooking ? (
-                <div className="mt-6 rounded-2xl border border-[#E6DDD0] bg-white p-5 shadow-[0_8px_24px_rgba(11,43,38,0.05)]">
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-base font-bold text-[#0F1E1B]">
-                        {getCareRecipientName(primaryAttentionBooking)}
-                      </p>
-                      <p className="mt-1 text-sm text-[#5B6B67]">
-                        {formatDate(primaryAttentionBooking.start_time)} · No carer assigned
-                      </p>
-                      <p className="mt-3 text-sm font-semibold text-[#176B62]">
-                        {primaryAttentionMatches > 0
-                          ? `${primaryAttentionMatches} suitable carer${primaryAttentionMatches === 1 ? "" : "s"} available`
-                          : "No suitable staff match yet — review availability"}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveFilter("unassigned")}
-                      className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0E7C6B] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#0A6658] focus:outline-none focus:ring-4 focus:ring-[#0E7C6B]/20"
-                    >
-                      Review matches →
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-6 rounded-2xl border border-[#E2ECE8] bg-[#F6FAF8] p-5">
-                  <p className="font-semibold text-[#174E45]">Nothing urgent needs your intervention.</p>
-                  <p className="mt-1 text-sm leading-6 text-[#5B6B67]">
-                    CareSphere will surface staffing risks here before they become missed visits.
-                  </p>
-                </div>
-              )}
-
-              <p className="mt-4 text-xs font-medium text-[#6B7C77]">
-                {unassignedBookings.length > 0
-                  ? `${unassignedBookings.length} unassigned overall · ${unassignedWithMatches.length} already have suitable staff matches`
-                  : "All accepted bookings currently have staff coverage."}
-              </p>
-            </div>
-          </div>
-        </section>
-
+        <ProviderCommandCentre name={getFirstName()} greeting={isNewAccount ? "Welcome" : getGreeting()} live={liveOperations} staffCount={staffMembers.length} coverage={next72HourCoverage} scheduled={next72HourBookings} uncovered={next72HourUncovered} attention={primaryAttentionBooking} matches={primaryAttentionMatches} recipientName={getCareRecipientName} formatDate={formatDate} week={sevenDayCoverage} onFilter={setActiveFilter} />
         <section className="cs-enter mt-7 rounded-[22px] border border-[#E3E9E7] bg-white p-5 shadow-[0_8px_24px_rgba(18,37,32,0.04)] sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -1667,7 +1543,7 @@ export default function ProviderDashboardPage() {
                 <p className="truncate text-sm font-bold text-[#122520]">
                   {showLiveNames ? getCareRecipientName(liveOperations.onVisit[0]) : "Active care visit"}
                 </p>
-                <p className="mt-1 text-xs text-[#5B6B67]">Carer with client · {formatTime(liveOperations.onVisit[0].start_time)}</p>
+                <p className="mt-1 text-xs text-[#5B6B67]">Carer with client Â· {formatTime(liveOperations.onVisit[0].start_time)}</p>
               </div>
             )}
 
@@ -1743,7 +1619,7 @@ export default function ProviderDashboardPage() {
                   onClick={() => setActiveFilter(liveOperations.missed.length > 0 ? "missed" : "late")}
                   className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#0F1E1B] px-4 text-xs font-bold text-white transition hover:bg-[#21332F]"
                 >
-                  Review affected visits →
+                  Review affected visits â†’
                 </button>
               </div>
             )}
@@ -1755,7 +1631,7 @@ export default function ProviderDashboardPage() {
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0E7C6B]">Visit timeline</p>
                 <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">What&apos;s next</h2>
               </div>
-              <button type="button" onClick={() => setActiveFilter("all")} className="text-xs font-bold text-[#0E7C6B]">View all →</button>
+              <button type="button" onClick={() => setActiveFilter("all")} className="text-xs font-bold text-[#0E7C6B]">View all â†’</button>
             </div>
 
             {liveOperations.today.length > 0 ? (
@@ -1792,7 +1668,7 @@ export default function ProviderDashboardPage() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-bold text-[#0F1E1B]">{getCareRecipientName(booking)}</span>
-                        <span className="mt-1 block text-xs text-[#6B7C77]">{formatTime(booking.start_time)} · {booking.care_type || "Care visit"}</span>
+                        <span className="mt-1 block text-xs text-[#6B7C77]">{formatTime(booking.start_time)} Â· {booking.care_type || "Care visit"}</span>
                       </span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}>{statusLabel}</span>
                     </button>
@@ -1868,7 +1744,7 @@ export default function ProviderDashboardPage() {
               <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Your evidence workspace</h2>
               <p className="mt-1 text-sm leading-6 text-[#5B6B67]">Organise evidence against the Single Assessment Framework. This is not a CQC rating or guarantee.</p>
             </div>
-            <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">View evidence →</Link>
+            <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">View evidence â†’</Link>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {["Safe care", "Effective care", "Caring support", "Well-led service"].map((area) => (
@@ -1920,7 +1796,7 @@ export default function ProviderDashboardPage() {
                 <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.025em] text-[#0F1E1B]">Care demand</h2>
                 <p className="mt-1 text-sm leading-6 text-[#5B6B67]">Real activity from your current CareSphere care journey.</p>
               </div>
-              <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">Improve profile →</Link>
+              <Link href="/provider-profile" className="text-sm font-bold text-[#087765]">Improve profile â†’</Link>
             </div>
             <dl className="mt-5 divide-y divide-[#E9EFEC]">
               <div className="flex items-center justify-between gap-4 py-3 first:pt-0"><dt className="text-sm text-[#5B6B67]">New care requests</dt><dd className="text-lg font-bold tabular-nums text-[#122520]">{pendingBookings.length}</dd></div>
@@ -1975,7 +1851,7 @@ export default function ProviderDashboardPage() {
               <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-4">
                 <p className="text-sm font-semibold text-[#123B36]">Ready for your first care request</p>
                 <p className="mt-1 text-xs leading-5 text-slate-500">Keep your availability current so families can request suitable care.</p>
-                <Link href="/provider-availability" className="mt-3 inline-flex text-xs font-bold text-[#087C76]">Update availability →</Link>
+                <Link href="/provider-availability" className="mt-3 inline-flex text-xs font-bold text-[#087C76]">Update availability â†’</Link>
               </div>
             ) : (
               <div className="mt-7 flex items-start">
@@ -2011,7 +1887,7 @@ export default function ProviderDashboardPage() {
                 <span className={`font-bold ${unassignedBookings.length ? "text-red-700" : "text-slate-700"}`}>{unassignedBookings.length}</span>
               </div>
             </div>
-            <Link href="/provider-staff" className="mt-4 inline-flex text-xs font-bold text-[#087C76]">Manage team →</Link>
+            <Link href="/provider-staff" className="mt-4 inline-flex text-xs font-bold text-[#087C76]">Manage team â†’</Link>
           </article>
         </section>
 
@@ -2395,7 +2271,7 @@ export default function ProviderDashboardPage() {
               )}
 
               <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-700">
-                View unassigned shifts →
+                View unassigned shifts â†’
               </span>
             </div>
           </button>
@@ -3302,7 +3178,7 @@ export default function ProviderDashboardPage() {
                                   {formatTime(
                                     booking.start_time
                                   )}
-                                  {" – "}
+                                  {" â€“ "}
                                   {formatTime(
                                     booking.end_time
                                   )}
@@ -3481,7 +3357,7 @@ export default function ProviderDashboardPage() {
                                         booking.assigned_staff_name
                                       }
                                       {booking.assigned_staff_role &&
-                                        ` · ${booking.assigned_staff_role}`}
+                                        ` Â· ${booking.assigned_staff_role}`}
                                     </div>
                                   </div>
                                 </div>
@@ -3811,11 +3687,11 @@ export default function ProviderDashboardPage() {
                                         staffOption.full_name
                                       }
                                       {staffOption.role
-                                        ? ` · ${staffOption.role}`
+                                        ? ` Â· ${staffOption.role}`
                                         : ""}
                                       {staffOption.can_assign
-                                        ? " — Available"
-                                        : ` — ${staffOption.reason}`}
+                                        ? " â€” Available"
+                                        : ` â€” ${staffOption.reason}`}
                                     </option>
                                   )
                                 )}
