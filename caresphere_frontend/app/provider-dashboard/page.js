@@ -1512,51 +1512,31 @@ export default function ProviderDashboardPage() {
             </label>
           </div>
 
-          <div className="relative mt-5 h-[300px] overflow-hidden rounded-[20px] border border-[#DCE6E3] bg-[#E8EFEC] sm:h-[370px]">
-            <div className="absolute inset-x-[-10%] top-[24%] h-3 rotate-[-5deg] bg-white/80" />
-            <div className="absolute inset-x-[-10%] top-[69%] h-3 rotate-[7deg] bg-white/80" />
-            <div className="absolute bottom-[-16%] left-[26%] h-[140%] w-3 rotate-[-12deg] bg-white/80" />
-            <div className="absolute bottom-[-16%] right-[23%] h-[140%] w-3 rotate-[8deg] bg-white/80" />
-            <div className="absolute inset-x-[-10%] top-[48%] h-16 rotate-[-4deg] bg-[#D8E9ED]/90" />
-
-            {[
-              ["18%", "31%", false],
-              ["46%", "24%", false],
-              ["72%", "37%", true],
-              ["31%", "71%", false],
-              ["68%", "75%", false],
-            ].map(([left, top, attention], index) => (
-              <button
-                key={`${left}-${top}`}
-                type="button"
-                onClick={() => setActiveFilter(attention ? "unassigned" : "in_progress")}
-                aria-label={attention ? "Visit needs cover" : "Carer on visit or en route"}
-                className={`absolute grid h-7 w-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[5px] shadow-[0_0_0_5px_rgba(255,255,255,0.42)] transition hover:scale-110 ${attention ? "border-[#F3E5B9] bg-[#C9A24B]" : "border-[#B8DDD3] bg-[#0E8B73]"}`}
-                style={{ left, top }}
-              >
-                <span className="sr-only">Map point {index + 1}</span>
-              </button>
-            ))}
-
-            {liveOperations.onVisit[0] && (
-              <div className="absolute left-4 top-5 max-w-[240px] rounded-2xl bg-white px-4 py-3 shadow-[0_12px_30px_rgba(18,37,32,0.15)]">
-                <p className="truncate text-sm font-bold text-[#122520]">
-                  {showLiveNames ? getCareRecipientName(liveOperations.onVisit[0]) : "Active care visit"}
-                </p>
-                <p className="mt-1 text-xs text-[#5B6B67]">Carer with client Â· {formatTime(liveOperations.onVisit[0].start_time)}</p>
+          {/* Real booking activity; no illustrative location markers. */}
+          <div className="mt-5 rounded-[20px] border border-[#DCE6E3] bg-[#F7F9F8] p-5 sm:p-6">
+            {liveOperations.today.filter((booking) => ["accepted", "confirmed", "in_progress"].includes(booking.status)).length === 0 ? (
+              <div className="py-8 text-center">
+                <h3 className="font-serif text-2xl text-[#0F1E1B]">No active or scheduled care today</h3>
+                <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#5B6B67]">Accepted, confirmed and in-progress bookings will appear here. Completed bookings remain in your booking history.</p>
+                <Link href="/bookings" className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#0E7C6B] px-5 text-sm font-semibold text-white">Review bookings</Link>
               </div>
+            ) : (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {liveOperations.today.filter((booking) => ["accepted", "confirmed", "in_progress"].includes(booking.status)).map((booking) => {
+                  const needsCover = booking.status === "accepted" && !booking.assigned_staff;
+                  const status = booking.status === "in_progress" ? "Care in progress" : needsCover ? "Needs staff assignment" : booking.status === "confirmed" ? "Confirmed" : "Accepted";
+                  return (
+                    <li key={booking.id} className="rounded-2xl border border-[#E3E9E7] bg-white p-4">
+                      <p className="font-semibold text-[#0F1E1B]">{showLiveNames ? getCareRecipientName(booking) : "Care visit"}</p>
+                      <p className="mt-1 text-sm text-[#5B6B67]">{formatTime(booking.start_time)} Â· {status}</p>
+                      <Link href="/bookings" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-[#0E7C6B]">{needsCover ? "Review staff assignment" : "View booking"} â†’</Link>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-
-            <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-x-5 gap-y-2 rounded-xl bg-white/95 px-4 py-3 text-xs font-semibold text-[#5B6B67] shadow-sm backdrop-blur">
-              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#0E8B73]" />Carer on visit or en route</span>
-              <span className="inline-flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#C9A24B]" />Visit needs cover</span>
-            </div>
           </div>
-
-          <div className="mt-4 flex items-center gap-2 text-xs text-[#6B7C77]">
-            <LockKeyhole className="h-4 w-4 text-[#087765]" />
-            Names are hidden by default. Map access is role-controlled and audited.
-          </div>
+          <p className="mt-4 text-xs leading-5 text-[#5B6B67]">Names are hidden by default. This view shows recorded booking statuses; GPS location and travel tracking are not connected.</p>
         </section>
 
         <section className="cs-enter mt-7 grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
