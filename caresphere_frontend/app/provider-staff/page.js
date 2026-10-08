@@ -36,6 +36,7 @@ const ROLE_OPTIONS = [
   ["nurse", "Nurse"],
   ["senior_caregiver", "Senior Caregiver"],
   ["manager", "Manager"],
+  ["coordinator", "Care Coordinator"],
   ["admin", "Administrator"],
   ["supervisor", "Supervisor"],
   ["trainer", "Trainer"],

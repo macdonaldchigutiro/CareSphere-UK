@@ -26,6 +26,7 @@ const PROVIDER_ITEMS = [
   { label: "Overview", href: "/provider-dashboard", icon: Home },
   { label: "Bookings", href: "/bookings", icon: CalendarDays },
   { label: "Staff", href: "/provider-staff", icon: Users },
+  { label: "Blocks & rotas", href: "/provider-rota", icon: CalendarDays },
   { label: "Availability", href: "/provider-availability", icon: CalendarDays },
   { label: "Company profile", href: "/provider-profile", icon: User },
   { label: "Notifications", href: "/notifications", icon: Bell },
@@ -43,6 +44,7 @@ const FAMILY_ITEMS = [
 ];
 
 const WORKSPACE_PATHS = [
+  "/provider-rota",
   "/dashboard",
   "/find-care",
   "/saved-providers",

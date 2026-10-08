@@ -336,6 +336,7 @@ class StaffMember(models.Model):
         NURSE = "nurse", "Nurse"
         SENIOR_CAREGIVER = "senior_caregiver", "Senior Caregiver"
         MANAGER = "manager", "Manager"
+        COORDINATOR = "coordinator", "Care Coordinator"
         ADMIN = "admin", "Administrator"
         SUPERVISOR = "supervisor", "Supervisor"
         TRAINER = "trainer", "Trainer"
@@ -537,3 +538,6 @@ class AvailabilitySlot(models.Model):
         )
 
         return slot_datetime < timezone.now()
+
+# Register workforce models after provider and staff models are defined.
+from .workforce_models import ShiftBlock  # noqa: E402,F401
