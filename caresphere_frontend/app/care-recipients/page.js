@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import CareSphereLogo from "../../components/CareSphereLogo";
 
 import {
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
-  HeartHandshake,
   Loader2,
   Plus,
   ShieldCheck,
@@ -421,24 +421,7 @@ export default function CareRecipientsPage() {
             className="flex items-center gap-3"
           >
 
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F766E] text-white">
-              <HeartHandshake className="h-6 w-6" />
-            </div>
-
-            <div>
-
-              <div className="text-xl font-extrabold tracking-tight">
-                CareSphere
-                <span className="text-[#0F766E]">
-                  {" "}UK
-                </span>
-              </div>
-
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Care with confidence
-              </div>
-
-            </div>
+            <CareSphereLogo />
 
           </Link>
 
